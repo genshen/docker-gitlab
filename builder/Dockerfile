@@ -1,12 +1,13 @@
 FROM ubuntu:18.10 AS gitlab_builder
+# docker build -t genshen/gitlab-builder  .
+# add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com"
 
-ENV BUILD_PROS=32 \
+ENV BUILD_PROS=16 \
     RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.4.tar.gz" \
     GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz" \
     NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0-linux-x64.tar.xz" \
     GITLAB_VERSION=11.3.0 \
-    GITLAB_SHELL_VERSION=8.3.3 \
     GITLAB_WORKHORSE_VERSION=6.1.0 \
     GITLAB_PAGES_VERSION=1.1.0 \
     GITALY_SERVER_VERSION=0.120.0 \
@@ -26,7 +27,7 @@ COPY ubuntu18.10.sources.list /etc/apt/sources.list
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # install ca-certificates apt-transport-https packages for downloading from https website.
 RUN apt-get update \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y sudo wget git-core postfix ca-certificates apt-transport-https \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y sudo wget git-core ca-certificates apt-transport-https \
     build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev libncurses5-dev libffi-dev curl openssh-server checkinstall libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev logrotate rsync python-docutils pkg-config cmake \
     && echo "installing golang."\
     && wget ${GOLANG_DOWNLOAD_URL} -O /tmp/golang.tar.gz \
@@ -53,17 +54,20 @@ RUN apt-get update \
 
 ENV GOROOT="/usr/local/go" \
     GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
     GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
     GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
     GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
 
+# Sudo resets PATH, along with many other environment variables, for security reasons.
+# It doesn't matter what is set in /etc/profile, unless you run sudo -i.
+# see https://serverfault.com/questions/11899/how-to-override-a-path-environment-variable-in-sudo
+# so, we add PATH to file /etc/profile.
 RUN echo "configure git user." \
     && rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
     && adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
-    && echo "\nexport PATH=/usr/local/go/bin:/usr/local/node/bin:~/.yarn/bin:\$PATH" >> ${GITLAB_HOME}/.profile \
+    && echo "\nexport PATH=/usr/local/go/bin:/usr/local/node/bin:~/.yarn/bin:\$PATH" >> /etc/profile \
     && sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input \
     && sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 \
     && sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true
