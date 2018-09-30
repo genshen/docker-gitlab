@@ -1,12 +1,12 @@
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM alpine:3.7 AS gitlab_builder
+FROM golang:1.10-alpine3.7 AS gitlab_builder
 # docker build -t genshen/gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
     description="base image for build gitlab images."
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.4.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz"
+# ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz"
 ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0.tar.gz"
 
 ## todo move some env to ARG
@@ -30,17 +30,12 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && apk update \
     && apk add --no-cache sudo git nodejs ca-certificates wget curl build-base python linux-headers \
     zlib-dev yaml-dev libressl-dev gdbm-dev libre2-dev readline-dev ncurses-dev openssh-server libxml2-dev libxslt-dev curl-dev icu-dev logrotate rsync py-docutils cmake \
-    && echo "installing golang." \
-    && wget ${GOLANG_DOWNLOAD_URL} -O /tmp/golang.tar.gz \
-    && tar -C /usr/local -xzf /tmp/golang.tar.gz \
-    && mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2 \
-    && rm /tmp/golang.tar.gz \
     && echo "installing ruby." \
     && wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
     && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc \
+    && ./configure --disable-install-rdoc --prefix=/usr/local \
     && make -j ${BUILD_PROS} \
     && make install \
     && gem install bundler --no-ri --no-rdoc \
@@ -51,7 +46,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && mkdir /tmp/node-src \
     && tar -xzf /tmp/node.tar.gz -C /tmp/node-src --strip-components=1 \
     && cd /tmp/node-src \
-    && ./configure \
+    && ./configure --prefix=/usr/local \
     && make -j ${BUILD_PROS} \
     && make install \
     && npm install --global yarn \
@@ -59,14 +54,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && rm -rf /tmp/node-src /tmp/node.tar.gz \
     && apk del python
 
-
-## copy golang binary:
-# mkdir /lib64 && ln -s /lib/libc.musl-x86_64.so.1 /lib64/ld-linux-x86-64.so.2
-
-# https://gist.github.com/neilstuartcraig/bd3f7010bae42292bc90d22f5773bae8
-## node js binary is build on glic but alpine os is based on musl-libc.
-# NODE_HOME="/usr/local/node" \
-
+## nodejs and ruby are installed in /usr/local
 
 ENV GOROOT="/usr/local/go" \
     YARN_BIN_GITLAB_USER="${GITLAB_HOME}/.yarn/bin" \
