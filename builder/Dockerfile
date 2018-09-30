@@ -1,6 +1,6 @@
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
 FROM golang:1.10-alpine3.7 AS gitlab_builder
-# docker build -t genshen/gitlab-builder  .
+# docker build --rm -t genshen/gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
     description="base image for build gitlab images."
@@ -12,8 +12,6 @@ ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0.tar.gz"
 ## todo move some env to ARG
 ENV BUILD_PROS=16 \
     GITLAB_VERSION=11.3.0 \
-    GITLAB_WORKHORSE_VERSION=6.1.0 \
-    GITLAB_PAGES_VERSION=1.1.0 \
     GITALY_SERVER_VERSION=0.120.0 \
     GITLAB_USER="git" \
     GITLAB_HOME="/home/git" \
@@ -70,7 +68,7 @@ ENV GOROOT="/usr/local/go" \
 # so, we add PATH to file /etc/profile.
 RUN echo "configure git user." \
     && rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
-    && adduser ${GITLAB_USER} \
+    && adduser -D ${GITLAB_USER} \
     && sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input \
     && sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 \
     && sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true
