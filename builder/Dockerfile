@@ -11,8 +11,6 @@ ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0.tar.gz"
 
 ## todo move some env to ARG
 ENV BUILD_PROS=16 \
-    GITLAB_VERSION=11.3.0 \
-    GITALY_SERVER_VERSION=0.120.0 \
     GITLAB_USER="git" \
     GITLAB_HOME="/home/git" \
     GITLAB_LOG_DIR="/var/log/gitlab" \
@@ -33,7 +31,7 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
     && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc --prefix=/usr/local \
+    && ac_cv_func_isnan=yes ac_cv_func_isinf=yes ./configure --disable-install-rdoc --prefix=/usr/local \
     && make -j ${BUILD_PROS} \
     && make install \
     && gem install bundler --no-ri --no-rdoc \
@@ -52,14 +50,17 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && rm -rf /tmp/node-src /tmp/node.tar.gz \
     && apk del python
 
+## ac_cv_func_isnan=yes ac_cv_func_isinf=yes
+# install charlock_holmes
+## error: 'int isinf(double)' conflicts with a previous declaration RUBY_EXTERN int isinf(double);
+## see: https://github.com/gliderlabs/docker-alpine/issues/261#issuecomment-285307909 and
+## https://github.com/knu/ruby-unf_ext/issues/18.
+
 ## nodejs and ruby are installed in /usr/local
 
 ENV GOROOT="/usr/local/go" \
     YARN_BIN_GITLAB_USER="${GITLAB_HOME}/.yarn/bin" \
-    GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
     GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
-    GITLAB_BUILD_DIR="${GITLAB_CACHE_DIR}/build" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
 
 # Sudo resets PATH, along with many other environment variables, for security reasons.

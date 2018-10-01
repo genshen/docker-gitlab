@@ -4,9 +4,8 @@ FROM genshen/gitlab-builder AS gitlab-pages-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
 ENV  GITLAB_PAGES_INSTALL_DIR="${GITLAB_HOME}/gitlab-pages" \
-     GITLAB_PAGES_VERSION_TAG="v0.6.0"
+     GITLAB_PAGES_VERSION_TAG="v0.6.1"
 ARG  GITLAB_PAGES_BUILD_DIR="${GITLAB_HOME}/gitlab-pages-builder"
-# it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_PAGES_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-pages.git"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -18,6 +17,7 @@ RUN export PATH=${GOROOT}/bin:${YARN_BIN_GITLAB_USER}:$PATH \
     && sudo -u ${GITLAB_USER} -H make all \
     && mkdir -p ${GITLAB_PAGES_INSTALL_DIR} \
     && cp -r ${GITLAB_PAGES_BUILD_DIR}/bin ${GITLAB_PAGES_INSTALL_DIR} \
+    && chown -R ${GITLAB_USER}: ${GITLAB_PAGES_INSTALL_DIR} \
     && rm -rf ${GITLAB_PAGES_BUILD_DIR}
 
 ## the binary is located in ${GITLAB_PAGES_INSTALL_DIR}/bin
