@@ -1,7 +1,7 @@
 ## Build docker images
 ```bash
 cd builder
-docker build --rm -t genshen/gitlab-builder  .
+docker build --rm -t genshen/gitlab-builder .
 cd ../gitlab-shell
 docker build --rm -t genshen/gitlab-shell-builder .
 cd ../gitlab-workhorse
@@ -12,4 +12,6 @@ cd ../gitaly
 docker build --rm -t genshen/gitlab-gitaly-builder .
 cd ../gitlab
 docker build --rm -t genshen/gitlab-builder .
+cd ../
+docker build --rm -t genshen/gitlab .
 ```

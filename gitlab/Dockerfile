@@ -9,15 +9,22 @@ ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-ce.git"
 
 ## postgresql-dev: libpq-dev on ubuntu.
 ##
-RUN apk add --no-cache postgresql-dev \
-    && export PATH=${GOROOT}/bin:${YARN_BIN_GITLAB_USER}:$PATH \
+RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y libpq-dev \
     && git clone -q -b ${GITLAB_VERSION} --depth 1 ${GITLAB_DOWNLOAD_URL} ${GITLAB_BUILD_DIR} \
     && cd ${GITLAB_BUILD_DIR} \
     && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} \
-    && sudo -u ${GITLAB_USER} -H bundle install -j ${BUILD_PROS} --deployment --without development test mysql aws kerberos
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+     bundle install -j ${BUILD_PROS} --deployment --without development test mysql aws kerberos"
+
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
-RUN ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
-    && cd ${GITLAB_BUILD_DIR} \
-    && sudo -u ${GITLAB_USER} -H yarn install --production --pure-lockfile \
-    && sudo -u ${GITLAB_USER} -H bundle exec rake gitlab:assets:compile USE_DB=false SKIP_STORAGE_VALIDATION=true
+RUN cd ${GITLAB_BUILD_DIR} \
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+    export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+    cp ${GITLAB_BUILD_DIR}/config/database.yml.postgresql ${GITLAB_BUILD_DIR}/config/database.yml; \
+    cp ${GITLAB_BUILD_DIR}/config/gitlab.yml.example ${GITLAB_BUILD_DIR}/config/gitlab.yml; \
+    cp ${GITLAB_BUILD_DIR}/config/resque.yml.example  ${GITLAB_BUILD_DIR}/config/resque.yml; \
+    yarn install --production --pure-lockfile ; \
+    yarn add ajv@^4.0.0; \
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true "

@@ -1,13 +1,13 @@
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM golang:1.10-alpine3.7 AS gitlab_builder
+FROM debian:9.5-slim AS gitlab_builder
 # docker build --rm -t genshen/gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
     description="base image for build gitlab images."
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.4.tar.gz"
-# ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0-linux-x64.tar.xz"
 
 ## todo move some env to ARG
 ENV BUILD_PROS=16 \
@@ -19,13 +19,14 @@ ENV BUILD_PROS=16 \
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; checkinstall and pkg-config not installed, openssl is replace by libressl-dev.
-# note: linux-headers is used for compiling ruby and nodejs (fix error of "linux/random.h: No such file or directory" in ruby.)
-# note: python is used for compiling nodejs, which will be deleted after nodejs is compiled.
 # install ca-certificates apt-transport-https packages for downloading from https website(e.g. golang, nodejs).
-RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositories \
-    && apk update \
-    && apk add --no-cache sudo git nodejs ca-certificates wget curl build-base python linux-headers \
-    zlib-dev yaml-dev libressl-dev gdbm-dev libre2-dev readline-dev ncurses-dev openssh-server libxml2-dev libxslt-dev curl-dev icu-dev logrotate rsync py-docutils cmake \
+RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ca-certificates apt-transport-https \
+    && sed -i 's#http://deb.debian.org#https://mirrors.ustc.edu.cn#g' /etc/apt/sources.list \
+    && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    sudo git-core wget curl build-essential cmake \
+    build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
+    libncurses5-dev libffi-dev libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
+    openssh-server checkinstall logrotate rsync python-docutils pkg-config \
     && echo "installing ruby." \
     && wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
     && mkdir /tmp/ruby-src \
@@ -37,18 +38,17 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
     && gem install bundler --no-ri --no-rdoc \
     && cd /tmp \
     && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz \
+    && echo "installing go." \
+    && wget ${GOLANG_DOWNLOAD_URL} -O /tmp/go.tar.gz \
+    && tar -C /usr/local -xzf /tmp/go.tar.gz \
+    && rm /tmp/go.tar.gz \
     && echo "installing node." \
-    && wget ${NODEJS_DOWNLOAD_URL} -O /tmp/node.tar.gz \
-    && mkdir /tmp/node-src \
-    && tar -xzf /tmp/node.tar.gz -C /tmp/node-src --strip-components=1 \
-    && cd /tmp/node-src \
-    && ./configure --prefix=/usr/local \
-    && make -j ${BUILD_PROS} \
-    && make install \
-    && npm install --global yarn \
-    && cd /tmp \
-    && rm -rf /tmp/node-src /tmp/node.tar.gz \
-    && apk del python
+    && wget ${NODEJS_DOWNLOAD_URL} -O /tmp/node.tar.xz \
+    && mkdir -p /usr/local/node \
+    && tar -xf /tmp/node.tar.xz -C /usr/local/node --strip-components=1 \
+    && rm /tmp/node.tar.xz \
+    && export PATH=/usr/local/node/bin:$PATH \
+    && npm install --global yarn
 
 ## ac_cv_func_isnan=yes ac_cv_func_isinf=yes
 # install charlock_holmes
@@ -59,17 +59,19 @@ RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.ustc.edu.cn/g' /etc/apk/repositorie
 ## nodejs and ruby are installed in /usr/local
 
 ENV GOROOT="/usr/local/go" \
+    NODE_HOME="/usr/local/node" \
     YARN_BIN_GITLAB_USER="${GITLAB_HOME}/.yarn/bin" \
     GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
     GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
 
-# Sudo resets PATH, along with many other environment variables, for security reasons.
+# sudo resets PATH, along with many other environment variables, for security reasons.
 # It doesn't matter what is set in /etc/profile, unless you run sudo -i.
 # see https://serverfault.com/questions/11899/how-to-override-a-path-environment-variable-in-sudo
 # so, we add PATH to file /etc/profile.
 RUN echo "configure git user." \
     && rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
-    && adduser -D ${GITLAB_USER} \
+    && adduser --gecos 'GitLab' ${GITLAB_USER} \
+    && passwd -d ${GITLAB_USER} \
     && sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input \
     && sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 \
     && sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true

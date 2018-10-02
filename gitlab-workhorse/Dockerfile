@@ -4,18 +4,19 @@ FROM genshen/gitlab-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v3.6.0"
+     GITLAB_WORKHORSE_VERSION_TAG="v3.3.1"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_WORKHORSE_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-workhorse.git"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
 ## node ruby are in /usr/local, and go is in /usr/local/go.
-RUN export PATH=${GOROOT}/bin:${YARN_BIN_GITLAB_USER}:$PATH \
-    && git clone -q -b ${GITLAB_WORKHORSE_VERSION_TAG} --depth 1 ${GITLAB_WORKHORSE_DOWNLOAD_URL} ${GITLAB_WORKHORSE_BUILD_DIR} \
+RUN git clone -q -b ${GITLAB_WORKHORSE_VERSION_TAG} --depth 1 ${GITLAB_WORKHORSE_DOWNLOAD_URL} ${GITLAB_WORKHORSE_BUILD_DIR} \
     && chown -R ${GITLAB_USER}: ${GITLAB_WORKHORSE_BUILD_DIR} \
     && cd ${GITLAB_WORKHORSE_BUILD_DIR} \
-    && sudo -u ${GITLAB_USER} -H make install PREFIX=${GITLAB_WORKHORSE_INSTALL_DIR} \
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+    export PATH=${GOROOT}/bin:$PATH; \
+    make install PREFIX=${GITLAB_WORKHORSE_INSTALL_DIR} " \
     && rm -rf ${GITLAB_WORKHORSE_BUILD_DIR}
 
 ## the binary is located in ${GITLAB_WORKHORSE_INSTALL_DIR}/bin
