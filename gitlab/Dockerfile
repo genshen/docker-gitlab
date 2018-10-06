@@ -1,7 +1,7 @@
-FROM genshen/gitlab-builder AS gitlab_builder
+FROM genshen/gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v10.5.8
+    GITLAB_VERSION=v10.2.2
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-ce.git"
@@ -25,6 +25,8 @@ RUN cd ${GITLAB_BUILD_DIR} \
     cp ${GITLAB_BUILD_DIR}/config/database.yml.postgresql ${GITLAB_BUILD_DIR}/config/database.yml; \
     cp ${GITLAB_BUILD_DIR}/config/gitlab.yml.example ${GITLAB_BUILD_DIR}/config/gitlab.yml; \
     cp ${GITLAB_BUILD_DIR}/config/resque.yml.example  ${GITLAB_BUILD_DIR}/config/resque.yml; \
+    bundle exec rake gettext:compile RAILS_ENV=production; \
     yarn install --production --pure-lockfile ; \
     yarn add ajv@^4.0.0; \
-    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true "
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true"
+

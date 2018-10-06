@@ -1,4 +1,4 @@
-FROM genshen/gitlab-builder AS gitlab-shell-builder
+FROM genshen/gitlab-base-builder AS gitlab-shell-builder
 ### docker build --rm -t genshen/gitlab-shell-builder .
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
@@ -8,7 +8,7 @@ ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
-## node ruby are in /usr/local, and go is in /usr/local/go.
+## node is in /usr/local/node, and go is in /usr/local/go.
 RUN mkdir -p ${GITLAB_SHELL_INSTALL_DIR} \
     && wget ${GITLAB_SHELL_DOWNLOAD_URL} -O /tmp/gitlab-shell.tar.gz \
     && tar -zxf /tmp/gitlab-shell.tar.gz -C ${GITLAB_SHELL_INSTALL_DIR} --strip-components=1 \
@@ -17,7 +17,7 @@ RUN mkdir -p ${GITLAB_SHELL_INSTALL_DIR} \
     && cd ${GITLAB_SHELL_INSTALL_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
     export PATH=${GOROOT}/bin:$PATH; \
-    cp config.yml.example config.yml; ./bin/install; ./bin/compile" \
+    cp config.yml.example config.yml; ./bin/install; ./bin/compile; rm -rf go_build" \
     && rm -rf ${GITLAB_HOME}/repositories go_build
 
 # remove unused repositories directory created by gitlab-shell install

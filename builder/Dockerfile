@@ -1,9 +1,9 @@
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM debian:9.5-slim AS gitlab_builder
+FROM debian:9.5-slim AS gitlab-base-builder
 # docker build --rm -t genshen/gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
-    description="base image for build gitlab images."
+      description="base image for build gitlab images."
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.4.tar.gz"
 ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz"
@@ -13,8 +13,6 @@ ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0-linux-x64.
 ENV BUILD_PROS=16 \
     GITLAB_USER="git" \
     GITLAB_HOME="/home/git" \
-    GITLAB_LOG_DIR="/var/log/gitlab" \
-    GITLAB_CACHE_DIR="/tmp/docker-gitlab" \
     RAILS_ENV=production
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
@@ -60,16 +58,13 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
 
 ENV GOROOT="/usr/local/go" \
     NODE_HOME="/usr/local/node" \
-    YARN_BIN_GITLAB_USER="${GITLAB_HOME}/.yarn/bin" \
-    GITLAB_DATA_DIR="${GITLAB_HOME}/data" \
-    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime"
+    YARN_BIN_GITLAB_USER="${GITLAB_HOME}/.yarn/bin"
 
 # sudo resets PATH, along with many other environment variables, for security reasons.
 # It doesn't matter what is set in /etc/profile, unless you run sudo -i.
 # see https://serverfault.com/questions/11899/how-to-override-a-path-environment-variable-in-sudo
 # so, we add PATH to file /etc/profile.
 RUN echo "configure git user." \
-    && rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub \
     && adduser --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && sudo -HEu ${GITLAB_USER} git config --global core.autocrlf input \
