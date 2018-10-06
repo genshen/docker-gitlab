@@ -1,30 +1,44 @@
 #!/bin/bash
 set -e
 
+## todo filesystem initialization can be moved to entrypoint.sh.
+
 ## this function is recommended to run in root mode.
 ## But, if this des is in git user HOME, non-root can be ok.
-mkdir_for_git (des)
+mkdir_for_git ()
 {
-    # if the dirctory exists, just remove it.
-    if [ -d "$des" ] then
-        rm $des
-    if
-    mkdir -p $des
-    chown -R ${GITLAB_USER}: $des
+    all_dirs=$@
+    for des in "${all_dirs[@]}"
+    do
+    # if the dirctory exists, just skip it.
+        if [[ -f "$des" ]]; then
+            rm $des
+        fi
+        if ! [[ -d "$des" ]]; then
+            mkdir -p $des;
+        fi
+    done
+
+    chown -R ${GITLAB_USER}: $all_dirs;
 }
 
 ## ths des dir must be in GITLAB_USER HOME dir.
-ln_f(src, des)
+ln_f ()
 {
-    mkdir_for_git(src)
-    sudo -u ${GITLAB_USER} -H ln -sf src des
+    src=$1;
+    des=$2;
+    mkdir_for_git $src
+    sudo -u ${GITLAB_USER} -H ln -sf $src $des;
 }
 
-## install necessary packages.
-apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-   sudo ca-certificates curl openssh-server git-core ruby logrotate
-
-gem install bundler --no-ri --no-rdoc
+ln_file ()
+{
+    src=$1;
+    des=$2;
+    touch $src;
+    chown -R ${GITLAB_USER}: $src;
+    sudo -u ${GITLAB_USER} -H ln -sf $src $des;
+}
 
 rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 # configure user env.
@@ -33,15 +47,11 @@ sudo -u ${GITLAB_USER} -H git config --global gc.auto 0
 sudo -u ${GITLAB_USER} -H git config --global repack.writeBitmaps true
 sudo -u ${GITLAB_USER} -H git config --global receive.advertisePushOptions true
 
-mkdir_for_git ${GITLAB_DIR}
-mkdir_for_git ${GITALY_DIR}
-mkdir_for_git ${GITLAB_PAGES_DIR}
-mkdir_for_git ${GITLAB_SHELL_DIR}
-mkdir_for_git ${GITLAB_WORKHORSE_DIR}
+ls -la ${GITLAB_DIR} ${GITALY_DIR} ${GITLAB_PAGES_DIR} ${GITLAB_SHELL_DIR} ${GITLAB_WORKHORSE_DIR}  # todo del it.
 
-mkdir_for_git ${GITLAB_DATA_DIR}
-mkdir_for_git ${GITLAB_CACHE_DIR}
-mkdir_for_git ${GITLAB_LOG_DIR}
+# mkdir_for_git ${GITLAB_DIR} ${GITALY_DIR} ${GITLAB_PAGES_DIR} ${GITLAB_SHELL_DIR} ${GITLAB_WORKHORSE_DIR}
+# @important: please make sure all upstream images data has owner ${GITLAB_USER}.
+mkdir_for_git ${GITLAB_CONFIG_DIR} ${GITLAB_DATA_DIR} ${GITLAB_CACHE_DIR} ${GITLAB_LOG_DIR}
 
 # remove gitlab shell and workhorse secrets
 rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret
@@ -61,10 +71,16 @@ sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DIR}/tmp/
 sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/pids/
 sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/
 
+# todo: Restrict Gitaly socket access
+# sudo chmod 0700 /home/git/gitlab/tmp/sockets/private
+# sudo chown git /home/git/gitlab/tmp/sockets/private
+
 ## init gitlab log dir.
 rm -rf ${GITLAB_DIR}/log
 ln_f ${GITLAB_LOG_DIR}/gitlab ${GITLAB_DIR}/log
 sudo -u ${GITLAB_USER} -H chmod -R u+rwX,go-w ${GITLAB_LOG_DIR}/gitlab
+ln_file ${GITLAB_LOG_DIR}/gitlab-shell.log ${GITLAB_SHELL_DIR}/gitlab-shell.log
+# ln gitlab-shell logs (@see home/git/gitlab/lib/support/logrotate/gitlab)
 
 ## init public/upload dir.
 rm -rf ${GITLAB_DIR}/public/uploads
@@ -72,17 +88,27 @@ ln_f ${GITLAB_DATA_DIR}/public/uploads ${GITLAB_DIR}/public/uploads
 # Make sure only the GitLab user has access to the public/uploads/ directory
 # now that files in public/uploads are served by gitlab-workhorse
 sudo -u ${GITLAB_USER} -H chmod 0700 ${GITLAB_DATA_DIR}/public/uploads
+
 # Change the permissions of the directory where CI job traces are stored
+rm -rf ${GITLAB_DIR}/builds/
+ln_f ${GITLAB_DATA_DIR}/builds/ ${GITLAB_DIR}/builds/
 # todo: # WORKAROUND for https://github.com/sameersbn/docker-gitlab/issues/509
 sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/builds/
+
 # Change the permissions of the directory where CI artifacts are stored
+mkdir_for_git ${GITLAB_DATA_DIR}/shared/
+mkdir_for_git ${GITLAB_DATA_DIR}/shared/artifacts/ ${GITLAB_DATA_DIR}/shared/lfs-objects/ \
+    ${GITLAB_DATA_DIR}/shared/pages/ ${GITLAB_DATA_DIR}/shared/registry/
+mkdir_for_git ${GITLAB_DATA_DIR}/shared/artifacts/tmp
+mkdir_for_git ${GITLAB_DATA_DIR}/shared/artifacts/tmp/cache ${GITLAB_DATA_DIR}/shared/artifacts/tmp/upload
+ln_f ${GITLAB_DATA_DIR}/shared/ ${GITLAB_DIR}/shared/
 sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/shared/artifacts/
 # Change the permissions of the directory where GitLab Pages are stored
 sudo -u ${GITLAB_USER} -H chmod -R ug+rwX ${GITLAB_DATA_DIR}/shared/pages/
 
 ## init .secret
 rm -rf ${GITLAB_DIR}/.secret
-ln_f ${GITLAB_DATA_DIR}/.secret ${GITLAB_DIR}/.secret
+ln_file ${GITLAB_DATA_DIR}/.secret ${GITLAB_DIR}/.secret
 
 # todo Configure GitLab DB Settings
 # todo in Configure: sudo -u git -H chmod 0600 config/secrets.yml
@@ -96,6 +122,30 @@ sed -i \
   /etc/ssh/sshd_config
 echo "UseDNS no" >> /etc/ssh/sshd_config
 
-# Install Init Script
-cp ${GITLAB_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab
-cp ${GITLAB_DIR}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
+## copy config files
+# copy gitlab config files
+ln_file ${GITLAB_CONFIG_DIR}/gitlab.yml  ${GITLAB_DIR}/config/gitlab.yml
+ln_file ${GITLAB_CONFIG_DIR}/database.yml  ${GITLAB_DIR}/config/database.yml
+ln_file ${GITLAB_CONFIG_DIR}/redis.cache.yml  ${GITLAB_DIR}/config/redis.cache.yml
+ln_file ${GITLAB_CONFIG_DIR}/redis.queues.yml  ${GITLAB_DIR}/config/redis.queues.yml
+ln_file ${GITLAB_CONFIG_DIR}/redis.share_state.yml  ${GITLAB_DIR}/config/redis.share_state.yml
+ln_file ${GITLAB_CONFIG_DIR}/resque.yml  ${GITLAB_DIR}/config/resque.yml
+ln_file ${GITLAB_CONFIG_DIR}/secrets.yml  ${GITLAB_DIR}/config/secrets.yml
+ln_file ${GITLAB_CONFIG_DIR}/unicorn.rb  ${GITLAB_DIR}/config/unicorn.rb
+
+ln_file ${GITLAB_CONFIG_DIR}/initializers_rack_attack.rb  ${GITLAB_DIR}/config/initializers/rack_attack.rb
+
+#copy gitlab-shell config files
+ln_file ${GITLAB_CONFIG_DIR}/gitlab-shell.config.yml  ${GITLAB_SHELL_DIR}/config.yml
+
+# conpy gitaly config files
+ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.toml  ${GITALY_DIR}/config.toml
+
+
+## Install Init Script
+# cp ${GITLAB_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab
+
+## Set up Logrotate
+# fix "unknown group 'syslog'" error preventing logrotate from functioning (from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh)
+sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
+cp ${GITLAB_DIR}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab 

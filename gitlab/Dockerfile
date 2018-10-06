@@ -28,5 +28,14 @@ RUN cd ${GITLAB_BUILD_DIR} \
     bundle exec rake gettext:compile RAILS_ENV=production; \
     yarn install --production --pure-lockfile ; \
     yarn add ajv@^4.0.0; \
-    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true"
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true" \
+    && rm -rf ${GITLAB_BUILD_DIR}/node_modules
 
+## data copy and clean unnecessary data.
+## todo: del vendor/bundle/ruby/2.4.0/cache (60MB, need to known ruby version)
+RUN rm -rf ${GITLAB_HOME}/.cache \
+    && rm -rf ${GITLAB_BUILD_DIR}/tmp/cache/* \
+    && rm -rf ${GITLAB_BUILD_DIR}/doc \
+    && mkdir -p ${GITLAB_INSTALL_DIR} \
+    && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
+    && cp -a  ${GITLAB_BUILD_DIR}/* ${GITLAB_INSTALL_DIR}/ \

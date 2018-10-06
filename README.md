@@ -24,3 +24,6 @@ docker build --rm -t genshen/gitlab-builder .
 cd ../
 docker build --rm -t genshen/gitlab .
 ```
+
+## Database
+For currently, only postgresql is supported.

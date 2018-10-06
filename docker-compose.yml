@@ -1,0 +1,13 @@
+version: "3"
+services:
+  gitlab:
+    restart: always
+     image: genshen/gitlab:10.2.2
+    depends_on:
+    - redis
+    - postgresql
+    ports:
+    - "10080:80"  # todo ports
+    - "2022:22"
+    volumes:
+    - config:/etc/gitlab
