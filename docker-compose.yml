@@ -34,7 +34,7 @@ services:
     - ./data/postgresql:/var/lib/postgresql:Z
     environment:
     - POSTGRES_USER=git
-    - POSTGRES_PASSWORD="secure password"
+    - POSTGRES_PASSWORD=secure_password
     - POSTGRES_DB="gitlabhq_production"
     - PGDATA=/var/lib/postgresql/data
     - DB_EXTENSION=pg_trgm

@@ -7,7 +7,7 @@ production:
   database: gitlabhq_production
   pool: 10
   username: git
-  password: "secure password"
+  password: secure_password
   host: postgresql
 
 #
