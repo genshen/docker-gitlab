@@ -27,3 +27,14 @@ docker build --rm -t genshen/gitlab .
 
 ## Database
 For currently, only postgresql is supported.
+### another note
+In docker compose, 127.0.0.1 (and its reserved DNS name localhost) always refers to the current container, never the host.
+So, in database config (file config/database.yml), the **host** term should set to postgresql container name.
+
+So is the redis server hostname.
+
+## default data map
+
+
+## todo
+link rep dirs.

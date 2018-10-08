@@ -17,6 +17,7 @@ services:
   redis:
     restart: always
     image: redis:latest
+    container_name: redis
     command:
     - --loglevel warning
     volumes:
@@ -28,11 +29,12 @@ services:
       context: .
       dockerfile: Dockerfile-pg-with-pg_trgm
     image: postgresql-with-pg_trgm
+    container_name: postgresql
     volumes:
     - ./data/postgresql:/var/lib/postgresql:Z
     environment:
     - POSTGRES_USER=git
-    - POSTGRES_PASSWORD=gitlab_password
-    - POSTGRES_DB=gitlabhq_production
+    - POSTGRES_PASSWORD="secure password"
+    - POSTGRES_DB="gitlabhq_production"
     - PGDATA=/var/lib/postgresql/data
     - DB_EXTENSION=pg_trgm
