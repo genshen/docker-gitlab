@@ -22,7 +22,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
     && sed -i 's#http://deb.debian.org#https://mirrors.ustc.edu.cn#g' /etc/apt/sources.list \
     && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo git-core wget curl build-essential cmake \
-    build-essential zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
+    zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
     libncurses5-dev libffi-dev libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
     openssh-server checkinstall logrotate rsync python-docutils pkg-config \
     && echo "installing ruby." \
@@ -30,7 +30,7 @@ RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-instal
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
     && cd /tmp/ruby-src \
-    && ac_cv_func_isnan=yes ac_cv_func_isinf=yes ./configure --disable-install-rdoc --prefix=/usr/local \
+    && ./configure --disable-install-rdoc --prefix=/usr/local \
     && make -j ${BUILD_PROS} \
     && make install \
     && gem install bundler --no-ri --no-rdoc \

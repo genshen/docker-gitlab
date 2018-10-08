@@ -40,7 +40,21 @@ ln_file ()
     sudo -u ${GITLAB_USER} -H ln -sf $src $des;
 }
 
+## config sshd.
+sed -i \
+  -e "s|^[#]*UsePAM yes|UsePAM no|" \
+  -e "s|^[#]*UsePrivilegeSeparation yes|UsePrivilegeSeparation no|" \
+  -e "s|^[#]*PasswordAuthentication yes|PasswordAuthentication no|" \
+  -e "s|^[#]*LogLevel INFO|LogLevel VERBOSE|" \
+  /etc/ssh/sshd_config
+echo "UseDNS no" >> /etc/ssh/sshd_config
+
+# in some system, those lines are commented.
+sed -i "s|#HostKey|HostKey|g" /etc/ssh/sshd_config
+sed -i "s|HostKey /etc/ssh/|HostKey ${GITLAB_DATA_DIR}/ssh/|g" /etc/ssh/sshd_config
+# ssh_host file will be created at container runing.
 rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
+
 # configure user env.
 sudo -u ${GITLAB_USER} -H git config --global core.autocrlf input
 sudo -u ${GITLAB_USER} -H git config --global gc.auto 0
@@ -148,4 +162,4 @@ ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.toml  ${GITALY_DIR}/config.toml
 ## Set up Logrotate
 # fix "unknown group 'syslog'" error preventing logrotate from functioning (from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh)
 sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
-cp ${GITLAB_DIR}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab 
+cp ${GITLAB_DIR}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab

@@ -1,0 +1,22 @@
+FROM postgres:11-alpine
+
+RUN mkdir -p /docker-entrypoint-initdb.d \
+    && echo -e "\
+#!/bin/sh \n\
+set -e    \n\
+\n\
+"\${psql[@]}" <<- 'EOSQL'  \n\
+CREATE EXTENSION IF NOT EXISTS pg_trgm;  \n\
+EOSQL" >> /docker-entrypoint-initdb.d/initpg-with-pg_trgm.sh \
+    && chmod +x /docker-entrypoint-initdb.d/initpg-with-pg_trgm.sh
+
+# hope to be following:
+#  cat >> /docker-entrypoint-initdb.d/initpg-with-pg_trgm.sh <<EOF
+#  #!/bin/sh
+#
+#  set -e
+#
+#  "\${psql[@]}" <<- 'EOSQL'
+#  CREATE EXTENSION IF NOT EXISTS pg_trgm;
+#  EOSQL
+#  EOF \

@@ -2,7 +2,7 @@ version: "3"
 services:
   gitlab:
     restart: always
-     image: genshen/gitlab:10.2.2
+    image: genshen/gitlab:10.2.2
     depends_on:
     - redis
     - postgresql
@@ -10,4 +10,29 @@ services:
     - "10080:80"  # todo ports
     - "2022:22"
     volumes:
-    - config:/etc/gitlab
+    - ./config:/etc/gitlab
+    - ./data/gitlab:/gitlab/data
+    - ./data/gitlab/gitlab-logs:/var/log/gitlab
+
+  redis:
+    restart: always
+    image: redis:latest
+    command:
+    - --loglevel warning
+    volumes:
+    - ./data/redis:/var/lib/redis:Z
+
+  postgresql:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile-pg-with-pg_trgm
+    image: postgresql-with-pg_trgm
+    volumes:
+    - ./data/postgresql:/var/lib/postgresql:Z
+    environment:
+    - POSTGRES_USER=git
+    - POSTGRES_PASSWORD=password
+    - POSTGRES_DB=gitlabhq_production
+    - PGDATA=/var/lib/postgresql/data
+    - DB_EXTENSION=pg_trgm
