@@ -32,7 +32,8 @@ ENV GITLAB_USER="git" \
     RAILS_ENV=production
 
 ## define gitlab components install directories.
-ENV GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
+ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \
+    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
     GITLAB_DIR="${GITLAB_HOME}/gitlab" \
     GITALY_DIR="${GITLAB_HOME}/gitaly" \
     GITLAB_PAGES_DIR="${GITLAB_HOME}/gitlab-pages" \

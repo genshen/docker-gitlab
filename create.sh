@@ -8,7 +8,7 @@ set -e
 mkdir_for_git ()
 {
     all_dirs=$@
-    for d in "${all_dirs[@]}"
+    for d in "$@"
     do
     # if the dirctory exists, just skip it.
         if [[ -f "$d" ]]; then
@@ -16,10 +16,9 @@ mkdir_for_git ()
         fi
         if ! [[ -d "$d" ]]; then
             mkdir -p $d;
+            chown -R ${GITLAB_USER}: $d;
         fi
     done
-
-    chown -R ${GITLAB_USER}: $all_dirs;
 }
 
 ## ths des dir must be in GITLAB_USER HOME dir.
@@ -69,9 +68,6 @@ sudo -u ${GITLAB_USER} -H git config --global receive.advertisePushOptions true
 # @important: please make sure all upstream images data has owner ${GITLAB_USER}.
 mkdir_for_git ${GITLAB_CONFIG_DIR} ${GITLAB_DATA_DIR} ${GITLAB_CACHE_DIR} ${GITLAB_LOG_DIR}
 
-# remove gitlab shell and workhorse secrets
-rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret
-
 ## init gitlab tmp dir.
 # the dir ${GITLAB_DIR}/tmp already exists.
 # https://docs.gitlab.com/ce/install/installation.html#configure-it
@@ -101,9 +97,17 @@ ln_f ${GITLAB_DATA_DIR}/builds/ ${GITLAB_DIR}/builds
 ## shared dir
 ln_f ${GITLAB_DATA_DIR}/shared/ ${GITLAB_DIR}/shared
 
+# remove gitlab shell and workhorse secrets
+rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret
+
 ## init .secret
 rm -rf ${GITLAB_DIR}/.secret
 ln_file ${GITLAB_DATA_DIR}/.secret ${GITLAB_DIR}/.secret
+
+## repository dir
+rm -rf ${GIT_REPOSITORIES_DIR}
+ln_f ${GITLAB_DATA_DIR}/repositories ${GIT_REPOSITORIES_DIR}
+
 
 # todo Configure GitLab DB Settings
 # todo in Configure: sudo -u git -H chmod 0600 config/secrets.yml
@@ -133,7 +137,7 @@ ln_file ${GITLAB_CONFIG_DIR}/initializers_rack_attack.rb  ${GITLAB_DIR}/config/i
 #copy gitlab-shell config files
 ln_file ${GITLAB_CONFIG_DIR}/gitlab-shell.config.yml  ${GITLAB_SHELL_DIR}/config.yml
 
-# conpy gitaly config files
+# copy gitaly config files
 ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.toml  ${GITALY_DIR}/config.toml
 
 
