@@ -45,7 +45,8 @@ COPY --chown=root:root --from=ruby-env /usr/local/ruby /usr/local/ruby/
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && apt-get clean && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    sudo ca-certificates curl openssh-server git-core logrotate \
+    sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate \
+    libpq5 libicu57 libre2-3 \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && gem install bundler --no-ri --no-rdoc \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
@@ -67,7 +68,6 @@ RUN chmod +x /usr/local/sbin/create.sh /usr/local/sbin/entrypoint.sh \
 EXPOSE 22/tcp 80/tcp
 VOLUME ["${GITLAB_DATA_DIR}", "${GITLAB_CONFIG_DIR}", "${GITLAB_LOG_DIR}"]
 
-# ENTRYPOINT ["/usr/local/sbin/entrypoint.sh"]
-CMD ["app:start"]
+ENTRYPOINT ["/usr/local/sbin/entrypoint.sh"]
 
 ## todo: backup schedule
