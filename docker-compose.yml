@@ -2,7 +2,7 @@ version: "3"
 services:
   gitlab:
     restart: always
-    image: genshen/gitlab:10.2.2
+    image: genshen/gitlab:latest
     depends_on:
     - redis
     - postgresql
@@ -32,7 +32,7 @@ services:
     - ./data/postgresql:/var/lib/postgresql:Z
     environment:
     - POSTGRES_USER=git
-    - POSTGRES_PASSWORD=password
+    - POSTGRES_PASSWORD=gitlab_password
     - POSTGRES_DB=gitlabhq_production
     - PGDATA=/var/lib/postgresql/data
     - DB_EXTENSION=pg_trgm
