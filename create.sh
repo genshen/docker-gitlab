@@ -8,14 +8,14 @@ set -e
 mkdir_for_git ()
 {
     all_dirs=$@
-    for des in "${all_dirs[@]}"
+    for d in "${all_dirs[@]}"
     do
     # if the dirctory exists, just skip it.
-        if [[ -f "$des" ]]; then
-            rm $des
+        if [[ -f "$d" ]]; then
+            rm $d
         fi
-        if ! [[ -d "$des" ]]; then
-            mkdir -p $des;
+        if ! [[ -d "$d" ]]; then
+            mkdir -p $d;
         fi
     done
 
@@ -55,13 +55,15 @@ sed -i "s|HostKey /etc/ssh/|HostKey ${GITLAB_DATA_DIR}/ssh/|g" /etc/ssh/sshd_con
 # ssh_host file will be created at container runing.
 rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
+## link ~/.ssh dir
+rm -rf ${GITLAB_HOME}/.ssh
+ln_f ${GITLAB_DATA_DIR}/.ssh ${GITLAB_HOME}/.ssh
+
 # configure user env.
 sudo -u ${GITLAB_USER} -H git config --global core.autocrlf input
 sudo -u ${GITLAB_USER} -H git config --global gc.auto 0
 sudo -u ${GITLAB_USER} -H git config --global repack.writeBitmaps true
 sudo -u ${GITLAB_USER} -H git config --global receive.advertisePushOptions true
-
-ls -la ${GITLAB_DIR} ${GITALY_DIR} ${GITLAB_PAGES_DIR} ${GITLAB_SHELL_DIR} ${GITLAB_WORKHORSE_DIR}  # todo del it.
 
 # mkdir_for_git ${GITLAB_DIR} ${GITALY_DIR} ${GITLAB_PAGES_DIR} ${GITLAB_SHELL_DIR} ${GITLAB_WORKHORSE_DIR}
 # @important: please make sure all upstream images data has owner ${GITLAB_USER}.
@@ -70,20 +72,13 @@ mkdir_for_git ${GITLAB_CONFIG_DIR} ${GITLAB_DATA_DIR} ${GITLAB_CACHE_DIR} ${GITL
 # remove gitlab shell and workhorse secrets
 rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret
 
-## init ~/.ssh dir
-rm -rf ${GITLAB_HOME}/.ssh
-ln_f ${GITLAB_DATA_DIR}/.ssh ${GITLAB_HOME}/.ssh
-sudo -u ${GITLAB_USER} -H chmod 700 ${GITLAB_DATA_DIR}/.ssh
-
 ## init gitlab tmp dir.
 # the dir ${GITLAB_DIR}/tmp already exists.
 # https://docs.gitlab.com/ce/install/installation.html#configure-it
-echo "start gitlab config."
+echo "linking gitlab config."
+rm -rf ${GITLAB_DIR}/tmp/pids ${GITLAB_DIR}/tmp/sockets
 ln_f ${GITLAB_DATA_DIR}/tmp/pids/ ${GITLAB_DIR}/tmp/pids
 ln_f ${GITLAB_DATA_DIR}/tmp/sockets/ ${GITLAB_DIR}/tmp/sockets
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DIR}/tmp/
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/pids/
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/
 
 # todo: Restrict Gitaly socket access
 # sudo chmod 0700 /home/git/gitlab/tmp/sockets/private
@@ -92,33 +87,19 @@ sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/
 ## init gitlab log dir.
 rm -rf ${GITLAB_DIR}/log
 ln_f ${GITLAB_LOG_DIR}/gitlab ${GITLAB_DIR}/log
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX,go-w ${GITLAB_LOG_DIR}/gitlab
 ln_file ${GITLAB_LOG_DIR}/gitlab-shell.log ${GITLAB_SHELL_DIR}/gitlab-shell.log
 # ln gitlab-shell logs (@see home/git/gitlab/lib/support/logrotate/gitlab)
 
 ## init public/upload dir.
 rm -rf ${GITLAB_DIR}/public/uploads
 ln_f ${GITLAB_DATA_DIR}/public/uploads ${GITLAB_DIR}/public/uploads
-# Make sure only the GitLab user has access to the public/uploads/ directory
-# now that files in public/uploads are served by gitlab-workhorse
-sudo -u ${GITLAB_USER} -H chmod 0700 ${GITLAB_DATA_DIR}/public/uploads
 
 # Change the permissions of the directory where CI job traces are stored
 rm -rf ${GITLAB_DIR}/builds/
-ln_f ${GITLAB_DATA_DIR}/builds/ ${GITLAB_DIR}/builds/
-# todo: # WORKAROUND for https://github.com/sameersbn/docker-gitlab/issues/509
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/builds/
+ln_f ${GITLAB_DATA_DIR}/builds/ ${GITLAB_DIR}/builds
 
-# Change the permissions of the directory where CI artifacts are stored
-mkdir_for_git ${GITLAB_DATA_DIR}/shared/
-mkdir_for_git ${GITLAB_DATA_DIR}/shared/artifacts/ ${GITLAB_DATA_DIR}/shared/lfs-objects/ \
-    ${GITLAB_DATA_DIR}/shared/pages/ ${GITLAB_DATA_DIR}/shared/registry/
-mkdir_for_git ${GITLAB_DATA_DIR}/shared/artifacts/tmp
-mkdir_for_git ${GITLAB_DATA_DIR}/shared/artifacts/tmp/cache ${GITLAB_DATA_DIR}/shared/artifacts/tmp/upload
-ln_f ${GITLAB_DATA_DIR}/shared/ ${GITLAB_DIR}/shared/
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/shared/artifacts/
-# Change the permissions of the directory where GitLab Pages are stored
-sudo -u ${GITLAB_USER} -H chmod -R ug+rwX ${GITLAB_DATA_DIR}/shared/pages/
+## shared dir
+ln_f ${GITLAB_DATA_DIR}/shared/ ${GITLAB_DIR}/shared
 
 ## init .secret
 rm -rf ${GITLAB_DIR}/.secret
