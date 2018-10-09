@@ -35,7 +35,7 @@ RUN cd ${GITLAB_BUILD_DIR} \
 ## todo: del vendor/bundle/ruby/2.4.0/cache (60MB, need to known ruby version)
 ## todo: del ${GITLAB_BUILD_DIR}.
 RUN rm -rf ${GITLAB_HOME}/.cache \
-    && rm -rf ${GITLAB_BUILD_DIR}/tmp/cache/* ${GITLAB_BUILD_DIR}/doc ${GITLAB_BUILD_DIR}/.git \
+    && rm -rf ${GITLAB_BUILD_DIR}/tmp/cache/* ${GITLAB_BUILD_DIR}/.git \
     && mkdir -p ${GITLAB_INSTALL_DIR} \
     && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
     && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/ \

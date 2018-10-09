@@ -175,7 +175,8 @@ start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_DIR} --user ${
     -authBackend http://127.0.0.1:8080${GITLAB_RELATIVE_URL_ROOT}  \
     -authSocket ${GITLAB_DIR}/tmp/sockets/gitlab.socket \
     -documentRoot ${GITLAB_DIR}/public \
-    -proxyHeadersTimeout ${GITLAB_WORKHORSE_TIMEOUT}
+    -proxyHeadersTimeout ${GITLAB_WORKHORSE_TIMEOUT} \
+    -logFile ${GITLAB_LOG_DIR}/gitlab/gitlab-workhorse.log
 echo "done"
 # OR:
 # $app_root/bin/daemon_with_pidfile $gitlab_workhorse_pid_path  \
