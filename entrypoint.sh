@@ -3,6 +3,7 @@ set -e
 
 SSHD=$(which sshd)
 BUNDLE=$(which bundle)
+GITLAB_REPOS_DATA_DIR=${GITLAB_DATA_DIR}/repositories
 
 ## set default env
 GITLAB_RELATIVE_URL_ROOT=${GITLAB_RELATIVE_URL_ROOT:-}
@@ -66,18 +67,27 @@ generate_ssh_host_keys
 
 ## link ~/.ssh dir
 mkdir_and_mod ${GITLAB_DATA_DIR}/.ssh:700
+if [[ ! -d ${GITLAB_DATA_DIR}/.ssh/authorized_keys ]]; then
+    sudo -u ${GITLAB_USER} -H touch ${GITLAB_DATA_DIR}/.ssh/authorized_keys
+    sudo -u ${GITLAB_USER} -H chmod 600 ${GITLAB_DATA_DIR}/.ssh/authorized_keys
+    # sudo -u ${GITLAB_USER} -H ln -sf ${GITLAB_HOME}/.ssh/authorized_keys ${GITLAB_HOME}/authorized_keys
+fi
 # sudo -u ${GITLAB_USER} -H chmod 700 ${GITLAB_DATA_DIR}/.ssh
 
 ## config gitlab/tmp dir
 mkdir_and_mod ${GITLAB_DATA_DIR}/tmp:u+rwX ${GITLAB_DATA_DIR}/tmp/pids/:u+rwX \
-    ${GITLAB_DATA_DIR}/tmp/sockets/:u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/private:0700
+    ${GITLAB_DATA_DIR}/tmp/sockets/:u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/private:0700 \
+    ${GITLAB_DATA_DIR}/tmp/prometheus_multiproc_dir/:u+rwX
 # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp
-sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DIR}/tmp/
+# sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DIR}/tmp/
 # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/pids/
 # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/
 
 ## log dir
 mkdir_and_mod ${GITLAB_LOG_DIR}/gitlab:u+rwX,go-w
+if [[ ! -f "${GITLAB_LOG_DIR}/gitlab/gitlab-shell.log" ]]; then
+    sudo -u ${GITLAB_USER} -H touch ${GITLAB_LOG_DIR}/gitlab/gitlab-shell.log
+fi
 # sudo -u ${GITLAB_USER} -H chmod -R u+rwX,go-w ${GITLAB_LOG_DIR}/gitlab
 
 ## public/uploads dir
@@ -106,7 +116,11 @@ mkdir_and_mod ${GITLAB_DATA_DIR}/shared/artifacts/tmp/cache:u+rwX \
 # sudo -u ${GITLAB_USER} -H chmod -R ug+rwX ${GITLAB_DATA_DIR}/shared/pages/
 
 # repository dir
-mkdir_and_mod ${GITLAB_DATA_DIR}/repositories:u+rwX
+if [[ ! -d ${GITLAB_REPOS_DATA_DIR} ]]; then
+    mkdir_and_mod ${GITLAB_REPOS_DATA_DIR}:u+rwX
+    sudo -u ${GITLAB_USER} -H chmod ug+rwX,o-rwx ${GITLAB_REPOS_DATA_DIR}
+    sudo -u ${GITLAB_USER} -H chmod g+s ${GITLAB_REPOS_DATA_DIR}
+fi
 echo "done"
 ####=======================
 #==end of configure of filesystem

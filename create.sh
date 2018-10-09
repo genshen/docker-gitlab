@@ -39,21 +39,6 @@ ln_file ()
     sudo -u ${GITLAB_USER} -H ln -sf $src $des;
 }
 
-## config sshd.
-sed -i \
-  -e "s|^[#]*UsePAM yes|UsePAM no|" \
-  -e "s|^[#]*UsePrivilegeSeparation yes|UsePrivilegeSeparation no|" \
-  -e "s|^[#]*PasswordAuthentication yes|PasswordAuthentication no|" \
-  -e "s|^[#]*LogLevel INFO|LogLevel VERBOSE|" \
-  /etc/ssh/sshd_config
-echo "UseDNS no" >> /etc/ssh/sshd_config
-
-# in some system, those lines are commented.
-sed -i "s|#HostKey|HostKey|g" /etc/ssh/sshd_config
-sed -i "s|HostKey /etc/ssh/|HostKey ${GITLAB_DATA_DIR}/ssh/|g" /etc/ssh/sshd_config
-# ssh_host file will be created at container runing.
-rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
-
 ## link ~/.ssh dir
 rm -rf ${GITLAB_HOME}/.ssh
 ln_f ${GITLAB_DATA_DIR}/.ssh ${GITLAB_HOME}/.ssh
@@ -72,9 +57,8 @@ mkdir_for_git ${GITLAB_CONFIG_DIR} ${GITLAB_DATA_DIR} ${GITLAB_CACHE_DIR} ${GITL
 # the dir ${GITLAB_DIR}/tmp already exists.
 # https://docs.gitlab.com/ce/install/installation.html#configure-it
 echo "linking gitlab config."
-rm -rf ${GITLAB_DIR}/tmp/pids ${GITLAB_DIR}/tmp/sockets
-ln_f ${GITLAB_DATA_DIR}/tmp/pids/ ${GITLAB_DIR}/tmp/pids
-ln_f ${GITLAB_DATA_DIR}/tmp/sockets/ ${GITLAB_DIR}/tmp/sockets
+rm -rf ${GITLAB_DIR}/tmp
+ln_f ${GITLAB_DATA_DIR}/tmp ${GITLAB_DIR}/tmp
 
 # todo: Restrict Gitaly socket access
 # sudo chmod 0700 /home/git/gitlab/tmp/sockets/private
@@ -83,7 +67,7 @@ ln_f ${GITLAB_DATA_DIR}/tmp/sockets/ ${GITLAB_DIR}/tmp/sockets
 ## init gitlab log dir.
 rm -rf ${GITLAB_DIR}/log
 ln_f ${GITLAB_LOG_DIR}/gitlab ${GITLAB_DIR}/log
-ln_file ${GITLAB_LOG_DIR}/gitlab-shell.log ${GITLAB_SHELL_DIR}/gitlab-shell.log
+ln_file ${GITLAB_LOG_DIR}/gitlab/gitlab-shell.log ${GITLAB_SHELL_DIR}/gitlab-shell.log
 # ln gitlab-shell logs (@see home/git/gitlab/lib/support/logrotate/gitlab)
 
 ## init public/upload dir.
@@ -112,14 +96,20 @@ ln_f ${GITLAB_DATA_DIR}/repositories ${GIT_REPOSITORIES_DIR}
 # todo Configure GitLab DB Settings
 # todo in Configure: sudo -u git -H chmod 0600 config/secrets.yml
 
-# configure sshd
+## config sshd.
 sed -i \
   -e "s|^[#]*UsePAM yes|UsePAM no|" \
   -e "s|^[#]*UsePrivilegeSeparation yes|UsePrivilegeSeparation no|" \
   -e "s|^[#]*PasswordAuthentication yes|PasswordAuthentication no|" \
   -e "s|^[#]*LogLevel INFO|LogLevel VERBOSE|" \
+  -e "s|^[#]*X11Forwarding yes|X11Forwarding no|" \
   /etc/ssh/sshd_config
 echo "UseDNS no" >> /etc/ssh/sshd_config
+
+# in some system, those lines are commented.
+sed -i "s|^[#]*HostKey /etc/ssh/|HostKey ${GITLAB_DATA_DIR}/ssh/|g" /etc/ssh/sshd_config
+# ssh_host file will be created at container runing.
+rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 
 ## copy config files
 # copy gitlab config files
