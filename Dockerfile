@@ -71,4 +71,6 @@ VOLUME ["${GITLAB_DATA_DIR}", "${GITLAB_CONFIG_DIR}", "${GITLAB_LOG_DIR}"]
 
 ENTRYPOINT ["/usr/local/sbin/entrypoint.sh"]
 
+CMD ["start"]
+
 ## todo: backup schedule
