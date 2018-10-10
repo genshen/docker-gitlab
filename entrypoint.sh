@@ -146,7 +146,7 @@ echo "done"
 
 ## start unicorn(user:git)
 echo "starting unicorn_rails"
-start-stop-daemon --background --start --chdir ${GITLAB_DIR} --user ${GITLAB_USER} \
+start-stop-daemon --background --start --chdir ${GITLAB_DIR} --chuid ${GITLAB_USER} \
     --exec ${BUNDLE} -- exec unicorn_rails -c ${GITLAB_DIR}/config/unicorn.rb -E ${RAILS_ENV}
 echo "done"
 #OR:    # Remove old unicorn socket if it exists
@@ -156,7 +156,7 @@ echo "done"
 
 ## start sidekiq(user:git)
 echo "starting gitlab sidekiq"
-start-stop-daemon --background --start --chdir ${GITLAB_DIR} --user ${GITLAB_USER} \
+start-stop-daemon --background --start --chdir ${GITLAB_DIR} --chuid ${GITLAB_USER} \
   --exec ${BUNDLE} -- exec sidekiq -c ${SIDEKIQ_CONCURRENCY} \
   -C ${GITLAB_DIR}/config/sidekiq_queues.yml \
   -e ${RAILS_ENV} \
@@ -169,7 +169,7 @@ echo "done"
 
 ## start gitlab-workhorse(user:git)
 echo "starting gitlab-workhorse"
-start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_DIR} --user ${GITLAB_USER} \
+start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_DIR} --chuid ${GITLAB_USER} \
     --exec ${GITLAB_WORKHORSE_DIR}/bin/gitlab-workhorse \
     -- -listenUmask 0 -listenNetwork tcp -listenAddr ":8181"  \
     -authBackend http://127.0.0.1:8080${GITLAB_RELATIVE_URL_ROOT}  \
@@ -196,7 +196,7 @@ echo "done"
 
 ## start gitaly(user:git, note: dir is ${GITLAB_DIR})
 echo "starting gitaly"
-start-stop-daemon --background --start --chdir ${GITALY_DIR} --user ${GITLAB_USER} \
+start-stop-daemon --background --start --chdir ${GITALY_DIR} --chuid ${GITLAB_USER} \
     --exec ${GITALY_DIR}/bin/gitaly -- ${GITALY_DIR}/config.toml
 echo "done"
 # OR:
