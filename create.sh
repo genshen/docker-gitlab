@@ -81,12 +81,11 @@ ln_f ${GITLAB_DATA_DIR}/builds/ ${GITLAB_DIR}/builds
 ## shared dir
 ln_f ${GITLAB_DATA_DIR}/shared/ ${GITLAB_DIR}/shared
 
-# remove gitlab shell and workhorse secrets
-rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret
-
 ## init .secret
 rm -rf ${GITLAB_DIR}/.secret
 ln_file ${GITLAB_DATA_DIR}/.secret ${GITLAB_DIR}/.secret
+# remove gitlab shell and workhorse secrets
+rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret
 
 ## repository dir
 rm -rf ${GIT_REPOSITORIES_DIR}

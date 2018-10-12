@@ -123,6 +123,19 @@ config_filesystem() {
         sudo -u ${GITLAB_USER} -H chmod ug+rwX,o-rwx ${GITLAB_REPOS_DATA_DIR}
         sudo -u ${GITLAB_USER} -H chmod g+s ${GITLAB_REPOS_DATA_DIR}
     fi
+
+    ## config secrets
+    local shell_secret="${GITLAB_DIR}/.gitlab_shell_secret"
+    if [[ ! -f "${shell_secret}" ]]; then
+        exec_as_git openssl rand -hex -out "${shell_secret}" 16
+        chmod 600 "${shell_secret}"
+    fi
+
+    local workhorse_secret="${GITLAB_DIR}/.gitlab_workhorse_secret"
+    if [[ ! -f "${workhorse_secret}" ]]; then
+        exec_as_git openssl rand -base64 -out "${workhorse_secret}" 32
+        chmod 600 "${workhorse_secret}"
+    fi
 }
 
 init_db() {
@@ -195,6 +208,11 @@ start_gitlab_daemons() {
     # $app_root/bin/daemon_with_pidfile $gitaly_pid_path $gitaly_dir/gitaly $gitaly_dir/config.toml >> $gitaly_log 2>&1 &
 }
 
+run_rake_task() {
+    cd ${GITLAB_DIR}
+    sudo -u ${GIT_USER} -H bundle exec rake $@
+}
+
 usage() {
     cat << EOF
 Arguments:
@@ -211,6 +229,10 @@ if [ "$1" != "" ]; then
             usage
             exit
             ;;
+        rake)
+            shift 1
+            run_rake_task $@
+        ;;
         run)
             echo "initializing sshd service and setting up data directory."
             config_ssh
