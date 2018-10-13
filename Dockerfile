@@ -66,7 +66,7 @@ RUN chmod +x /usr/local/sbin/create.sh /usr/local/sbin/entrypoint.sh \
     && bash /usr/local/sbin/create.sh \
     && rm /usr/local/sbin/create.sh
 
-EXPOSE 22/tcp 80/tcp
+EXPOSE 22/tcp 8181/tcp
 VOLUME ["${GITLAB_DATA_DIR}", "${GITLAB_CONFIG_DIR}", "${GITLAB_LOG_DIR}"]
 
 ENTRYPOINT ["/usr/local/sbin/entrypoint.sh"]

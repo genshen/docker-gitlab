@@ -127,13 +127,13 @@ config_filesystem() {
     ## config secrets
     local shell_secret="${GITLAB_DIR}/.gitlab_shell_secret"
     if [[ ! -f "${shell_secret}" ]]; then
-        exec_as_git openssl rand -hex -out "${shell_secret}" 16
+        sudo -u ${GITLAB_USER} -H openssl rand -hex -out "${shell_secret}" 16
         chmod 600 "${shell_secret}"
     fi
 
     local workhorse_secret="${GITLAB_DIR}/.gitlab_workhorse_secret"
     if [[ ! -f "${workhorse_secret}" ]]; then
-        exec_as_git openssl rand -base64 -out "${workhorse_secret}" 32
+        sudo -u ${GITLAB_USER} -H openssl rand -base64 -out "${workhorse_secret}" 32
         chmod 600 "${workhorse_secret}"
     fi
 }

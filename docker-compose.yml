@@ -7,7 +7,7 @@ services:
     - redis
     - postgresql
     ports:
-    - "10080:80"  # todo ports
+    - "10080:8181"
     - "2222:22"
     volumes:
     - ./config:/etc/gitlab
