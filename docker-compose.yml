@@ -9,6 +9,8 @@ services:
     ports:
     - "10080:8181"
     - "2222:22"
+    environment:
+    - WORKHORSE_LISTEN_NETWORK=unix
     volumes:
     - ./config:/etc/gitlab
     - ./data/gitlab:/gitlab/data

@@ -53,3 +53,5 @@ sshd log                     ->  ${GITLAB_LOG_DIR}/sshd.log
 
 ${GITLAB_DIR}/config         ->  ${GITLAB_CONFIG_DIR}
 
+## Run gitlab
+Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 8181. You can alse change environment variable `WORKHORSE_LISTEN_NETWORK` from "unix" (default value is "tcp") to let gitlab-workhorse listen unix socket `${GITLAB_DATA_DIR}/tmp/sockets/gitlab.socket`.

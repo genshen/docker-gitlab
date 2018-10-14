@@ -31,18 +31,10 @@ ENV GITLAB_USER="git" \
     GITLAB_LOG_DIR="/var/log/gitlab" \
     RAILS_ENV=production
 
-## define gitlab components install directories.
-ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \
-    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
-    GITLAB_DIR="${GITLAB_HOME}/gitlab" \
-    GITALY_DIR="${GITLAB_HOME}/gitaly" \
-    GITLAB_PAGES_DIR="${GITLAB_HOME}/gitlab-pages" \
-    GITLAB_SHELL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_WORKHORSE_DIR="${GITLAB_HOME}/gitlab-workhorse"
-
 COPY --chown=root:root --from=ruby-env /usr/local/ruby /usr/local/ruby/
 
 ## create a user ans setup env.
+# package postgresql-client is not installed.
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && apt-get clean && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
@@ -53,6 +45,16 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ 
+
+## define gitlab components install directories.
+ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \
+    GITLAB_RUNTIME_DIR="${GITLAB_CACHE_DIR}/runtime" \
+    GITLAB_DIR="${GITLAB_HOME}/gitlab" \
+    GITALY_DIR="${GITLAB_HOME}/gitaly" \
+    GITLAB_PAGES_DIR="${GITLAB_HOME}/gitlab-pages" \
+    GITLAB_SHELL_DIR="${GITLAB_HOME}/gitlab-shell" \
+    GITLAB_WORKHORSE_DIR="${GITLAB_HOME}/gitlab-workhorse" \
+    WORKHORSE_LISTEN_NETWORK="tcp"
 
 # note: replace ${GITLAB_USER} as git.
 COPY --chown=git:git --from=genshen/gitlab-shell-builder ${GITLAB_SHELL_DIR} ${GITLAB_SHELL_DIR}/

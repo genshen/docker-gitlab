@@ -4,6 +4,7 @@ set -e
 SSHD=$(which sshd)
 BUNDLE=$(which bundle)
 GITLAB_REPOS_DATA_DIR=${GITLAB_DATA_DIR}/repositories
+GITLAB_WORKHORSE_WORK_DIR=${GITLAB_WORKHORSE_DIR} # run gitlab-workhorse in this directory.
 
 ## set default env
 GITLAB_RELATIVE_URL_ROOT=${GITLAB_RELATIVE_URL_ROOT:-}
@@ -80,6 +81,8 @@ config_filesystem() {
     mkdir_and_mod ${GITLAB_DATA_DIR}/tmp:u+rwX ${GITLAB_DATA_DIR}/tmp/pids/:u+rwX \
         ${GITLAB_DATA_DIR}/tmp/sockets/:u+rwX ${GITLAB_DATA_DIR}/tmp/sockets/private:0700 \
         ${GITLAB_DATA_DIR}/tmp/prometheus_multiproc_dir/:u+rwX
+    # clean pids before starting gitlab.
+    rm -rf ${GITLAB_DATA_DIR}/tmp/pids/*
     # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp
     # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DIR}/tmp/
     # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/tmp/pids/
@@ -131,7 +134,7 @@ config_filesystem() {
         chmod 600 "${shell_secret}"
     fi
 
-    local workhorse_secret="${GITLAB_DIR}/.gitlab_workhorse_secret"
+    local workhorse_secret="${GITLAB_WORKHORSE_WORK_DIR}/.gitlab_workhorse_secret"
     if [[ ! -f "${workhorse_secret}" ]]; then
         sudo -u ${GITLAB_USER} -H openssl rand -base64 -out "${workhorse_secret}" 32
         chmod 600 "${workhorse_secret}"
@@ -174,9 +177,19 @@ start_gitlab_daemons() {
 
     ## start gitlab-workhorse(user:git)
     echo "starting gitlab-workhorse"
-    start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_DIR} --chuid ${GITLAB_USER} \
+    local workhorse_network="tcp"
+    local workhorse_addr=":8181"
+    if [[ ${WORKHORSE_LISTEN_NETWORK} = "unix" ]]; then
+        workhorse_network="unix"
+        workhorse_addr="${GITLAB_DIR}/tmp/sockets/gitlab-workhorse.socket"
+        echo "running gitlab-workhorse to listen unix socket at ${workhorse_addr}"
+    else
+        echo "running gitlab-workhorse to listen tcp socket at ${workhorse_addr}"
+    fi
+    start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_WORK_DIR} --chuid ${GITLAB_USER} \
         --exec ${GITLAB_WORKHORSE_DIR}/bin/gitlab-workhorse \
-        -- -listenUmask 0 -listenNetwork tcp -listenAddr ":8181"  \
+        -- -secretPath ${GITLAB_WORKHORSE_WORK_DIR}/.gitlab_workhorse_secret \
+        -listenUmask 0 -listenNetwork ${workhorse_network} -listenAddr ${workhorse_addr} \
         -authBackend http://127.0.0.1:8080${GITLAB_RELATIVE_URL_ROOT}  \
         -authSocket ${GITLAB_DIR}/tmp/sockets/gitlab.socket \
         -documentRoot ${GITLAB_DIR}/public \
