@@ -175,6 +175,14 @@ start_gitlab_daemons() {
     # OR: 
     #  RAILS_ENV=$RAILS_ENV bin/background_jobs start &
 
+    ## start gitaly(user:git, note: dir is ${GITLAB_DIR})
+    echo "starting gitaly"
+    start-stop-daemon --background --start --chdir ${GITALY_DIR} --chuid ${GITLAB_USER} \
+        --exec ${GITALY_DIR}/bin/gitaly -- ${GITALY_DIR}/config.toml
+    echo "done"
+    # OR:
+    # $app_root/bin/daemon_with_pidfile $gitaly_pid_path $gitaly_dir/gitaly $gitaly_dir/config.toml >> $gitaly_log 2>&1 &
+
     ## start gitlab-workhorse(user:git)
     echo "starting gitlab-workhorse"
     local workhorse_network="tcp"
@@ -182,9 +190,9 @@ start_gitlab_daemons() {
     if [[ ${WORKHORSE_LISTEN_NETWORK} = "unix" ]]; then
         workhorse_network="unix"
         workhorse_addr="${GITLAB_DIR}/tmp/sockets/gitlab-workhorse.socket"
-        echo "running gitlab-workhorse to listen unix socket at ${workhorse_addr}"
+        echo "gitlab-workhorse is running to listen unix socket at ${workhorse_addr}"
     else
-        echo "running gitlab-workhorse to listen tcp socket at ${workhorse_addr}"
+        echo "gitlab-workhorse is running to listen tcp socket at ${workhorse_addr}"
     fi
     start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_WORK_DIR} --chuid ${GITLAB_USER} \
         --exec ${GITLAB_WORKHORSE_DIR}/bin/gitlab-workhorse \
@@ -210,15 +218,6 @@ start_gitlab_daemons() {
     # $app_root/bin/daemon_with_pidfile $gitlab_pages_pid_path \
     # $gitlab_pages_dir/gitlab-pages $gitlab_pages_options \
     #  >> $gitlab_pages_log 2>&1 &
-
-
-    ## start gitaly(user:git, note: dir is ${GITLAB_DIR})
-    echo "starting gitaly"
-    start-stop-daemon --background --start --chdir ${GITALY_DIR} --chuid ${GITLAB_USER} \
-        --exec ${GITALY_DIR}/bin/gitaly -- ${GITALY_DIR}/config.toml
-    echo "done"
-    # OR:
-    # $app_root/bin/daemon_with_pidfile $gitaly_pid_path $gitaly_dir/gitaly $gitaly_dir/config.toml >> $gitaly_log 2>&1 &
 }
 
 run_rake_task() {

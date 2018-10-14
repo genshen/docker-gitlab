@@ -25,13 +25,19 @@ cd ../
 docker build --rm -t genshen/gitlab .
 ```
 
-## Database
+## Configure notice.
+### Database
 For currently, only postgresql is supported.
-### another note
+
 In docker compose, 127.0.0.1 (and its reserved DNS name localhost) always refers to the current container, never the host.
 So, in database config (file config/database.yml), the **host** term should set to postgresql container name.
 
 So is the redis server hostname.
+
+### gitlab-workhorse
+In entrypoint of this gitlab image, the path of file *.gitlab_workhorse_secret* is set to be `${GITLAB_WORKHORSE_DIR}/.gitlab_workhorse_secret` (${GITLAB_WORKHORSE_DIR} is usually /home/git/gitlab-workhorse).  
+if .gitlab_workhorse_secret file path is not configured correctly, the clone will return http 500 error when using http(s) protocol.  
+You should also config .gitlab_workhorse_secret file path in config file `config/gitlab.yml`.  
 
 ## data map
 Following directory are soft linked to ${GITLAB_DATA_DIR}, ${GITLAB_LOG_DIR} or ${GITLAB_CONFIG_DIR}.
