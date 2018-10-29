@@ -111,11 +111,12 @@ config_filesystem() {
     mkdir_and_mod ${GITLAB_DATA_DIR}/shared/:u+rwX
     mkdir_and_mod ${GITLAB_DATA_DIR}/shared/artifacts/:u+rwX \
         ${GITLAB_DATA_DIR}/shared/lfs-objects/:u+rwX \
-        ${GITLAB_DATA_DIR}/shared/pages/:u+rwX \
         ${GITLAB_DATA_DIR}/shared/registry/:u+rwX
     mkdir_and_mod ${GITLAB_DATA_DIR}/shared/artifacts/tmp:u+rwX
     mkdir_and_mod ${GITLAB_DATA_DIR}/shared/artifacts/tmp/cache:u+rwX \
         ${GITLAB_DATA_DIR}/shared/artifacts/tmp/upload:u+rwX
+    mkdir_and_mod ${GITLAB_PAGES_DATA_DIR}:u+rwX
+
     # sudo -u ${GITLAB_USER} -H chmod -R u+rwX ${GITLAB_DATA_DIR}/shared/artifacts/
     # Change the permissions of the directory where GitLab Pages are stored
     # sudo -u ${GITLAB_USER} -H chmod -R ug+rwX ${GITLAB_DATA_DIR}/shared/pages/

@@ -39,6 +39,10 @@ ln_file ()
     sudo -u ${GITLAB_USER} -H ln -sf $src $des;
 }
 
+## link gitlab-workhorse to /usr/local/bin
+# gitlab-zip-cat is used when using CI/CD to generate  archive.zip file.
+ln -s ${GITLAB_WORKHORSE_DIR}/bin/*  /usr/local/bin/
+
 ## link ~/.ssh dir
 rm -rf ${GITLAB_HOME}/.ssh
 ln_f ${GITLAB_DATA_DIR}/.ssh ${GITLAB_HOME}/.ssh
@@ -51,7 +55,7 @@ sudo -u ${GITLAB_USER} -H git config --global receive.advertisePushOptions true
 
 # mkdir_for_git ${GITLAB_DIR} ${GITALY_DIR} ${GITLAB_PAGES_DIR} ${GITLAB_SHELL_DIR} ${GITLAB_WORKHORSE_DIR}
 # @important: please make sure all upstream images data has owner ${GITLAB_USER}.
-mkdir_for_git ${GITLAB_CONFIG_DIR} ${GITLAB_DATA_DIR} ${GITLAB_CACHE_DIR} ${GITLAB_LOG_DIR}
+mkdir_for_git ${GITLAB_CONFIG_DIR} ${GITLAB_DATA_DIR} ${GITLAB_PAGES_DIR} ${GITLAB_CACHE_DIR} ${GITLAB_LOG_DIR}
 
 ## init gitlab tmp dir.
 # the dir ${GITLAB_DIR}/tmp already exists.
@@ -79,7 +83,13 @@ rm -rf ${GITLAB_DIR}/builds/
 ln_f ${GITLAB_DATA_DIR}/builds/ ${GITLAB_DIR}/builds
 
 ## shared dir
-ln_f ${GITLAB_DATA_DIR}/shared/ ${GITLAB_DIR}/shared
+# ls shared -> artifacts cahce lfs-objects  pages registry
+rm -rf ${GITLAB_DIR}/shared/artifacts ${GITLAB_DIR}/shared/lfs-objects ${GITLAB_DIR}/shared/pages ${GITLAB_DIR}/shared/registry
+ln_f ${GITLAB_DATA_DIR}/shared/artifacts ${GITLAB_DIR}/shared/artifacts
+ln_f ${GITLAB_DATA_DIR}/shared/lfs-objects ${GITLAB_DIR}/shared/lfs-objects
+ln_f ${GITLAB_DATA_DIR}/shared/registry ${GITLAB_DIR}/shared/registry
+# we keep shared/pages as volume for gitlab-pages.
+ln_f ${GITLAB_PAGES_DATA_DIR} ${GITLAB_DIR}/shared/pages
 
 ## init .secret
 rm -rf ${GITLAB_DIR}/.secret
@@ -135,5 +145,5 @@ ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.toml  ${GITALY_DIR}/config.toml
 
 ## Set up Logrotate
 # fix "unknown group 'syslog'" error preventing logrotate from functioning (from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh)
-sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
-cp ${GITLAB_DIR}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
+# sed -i "s|^su root syslog$|su root root|" /etc/logrotate.conf
+# cp ${GITLAB_DIR}/lib/support/logrotate/gitlab /etc/logrotate.d/gitlab
