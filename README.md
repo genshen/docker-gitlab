@@ -26,15 +26,15 @@ cd ../gitlab-shell
 docker build --rm -t genshen/gitlab-shell-builder .
 cd ../gitlab-workhorse
 docker build --rm -t genshen/gitlab-workhorse-builder .
-cd ../gitlab-pages
-docker build --rm -t genshen/gitlab-pages-builder .
 cd ../gitaly
 docker build --rm -t genshen/gitlab-gitaly-builder .
 cd ../gitlab
 docker build --rm -t genshen/gitlab-builder .
 # building intermediate images finished.
+cd ../gitlab-pages
+docker build --rm -t genshen/gitlab-pages .
 cd ../
-docker build --rm -t genshen/gitlab .
+docker build --rm -t genshen/gitlab-ce .
 ```
 
 ## Configure notice.
@@ -55,7 +55,7 @@ The symbolic link of following directories are created to `${GITLAB_DATA_DIR}`, 
 
 > default, ${GITLAB_HOME} is /home/git; ${GITLAB_DIR} is ${GITLAB_HOME}/gitlab; ${GITLAB_PAGES_DATA_DIR} is /gitlab/gitlab-pages, ${GITLAB_DATA_DIR} is /gitlab/data.
 
-|  gitlab source location (symbolic link) | => real localtion |
+|  gitlab source location (symbolic link) | => real location |
 |---|---|
 | sshd host key                    | ${GITLAB_DATA_DIR}/ssh  |
 | ${GITLAB_HOME}/repositories      | ${GITLAB_DATA_DIR}/repositories  |
@@ -76,7 +76,7 @@ The symbolic link of following directories are created to `${GITLAB_DATA_DIR}`, 
 | ${GITLAB_DIR}/config         |  ${GITLAB_CONFIG_DIR} |
 
 ## Run gitlab
-Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 8181. You can alse change environment variable `WORKHORSE_LISTEN_NETWORK` to "unix" (default value is "tcp") to let gitlab-workhorse listen unix socket `${GITLAB_DATA_DIR}/tmp/sockets/gitlab.socket`.
+Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 8181. You can also change environment variable `WORKHORSE_LISTEN_NETWORK` to "unix" (default value is "tcp") to let gitlab-workhorse listen unix socket `${GITLAB_DATA_DIR}/tmp/sockets/gitlab.socket`.
 
 ## Gitlab-Pages
 Image genshen/gitlab does not containe gitlab-pages.

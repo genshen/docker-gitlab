@@ -195,7 +195,7 @@ start_gitlab_daemons() {
     else
         echo "gitlab-workhorse is running to listen tcp socket at ${workhorse_addr}"
     fi
-    start-stop-daemon --background --start --chdir ${GITLAB_WORKHORSE_WORK_DIR} --chuid ${GITLAB_USER} \
+    start-stop-daemon --start --chdir ${GITLAB_WORKHORSE_WORK_DIR} --chuid ${GITLAB_USER} \
         --exec ${GITLAB_WORKHORSE_DIR}/bin/gitlab-workhorse \
         -- -secretPath ${GITLAB_WORKHORSE_WORK_DIR}/.gitlab_workhorse_secret \
         -listenUmask 0 -listenNetwork ${workhorse_network} -listenAddr ${workhorse_addr} \

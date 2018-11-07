@@ -28,8 +28,8 @@ services:
     ports:
     - "8090:8080"
     volumes:
-    - ./data/gitlab-pages/pages.log:/home/git/gitlab-pages/pages.conf
-    - ./data/gitlab-pages/gitlab-pages.log:/home/git/gitlab-pages/gitlab-pages.log
+    #- ./data/gitlab-pages/pages.log:/home/git/gitlab-pages/pages.conf
+    #- ./data/gitlab-pages/gitlab-pages.log:/home/git/gitlab-pages/gitlab-pages.log
     - ./data/gitlab-pages/shared:/home/git/gitlab-pages/pages:z
 
   redis:

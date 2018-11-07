@@ -1,5 +1,4 @@
 FROM genshen/gitlab-base-builder AS gitlab-pages-builder
-### docker build --rm -t genshen/gitlab-pages-builder .
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
@@ -41,7 +40,7 @@ RUN apt-get clean && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get
     && adduser --disabled-login --gecos 'GitLab' ${GITLAB_PAGES_USER} \
     && passwd -d ${GITLAB_PAGES_USER}
 
-COPY --chown=git:git --from=genshen/gitlab-pages-builder ${GITLAB_PAGES_HOME} ${GITLAB_PAGES_HOME}/
+COPY --chown=git:git --from=gitlab-pages-builder ${GITLAB_PAGES_HOME} ${GITLAB_PAGES_HOME}/
 
 EXPOSE 8080/tcp 4433/tcp
 VOLUME ["${GITLAB_PAGES_DATA_DIR}"]
