@@ -1,3 +1,15 @@
+# Gitlab Docker Image
+## Quick start
+```bash
+git clone https://github.com/genshen/docker-gitlab.git
+cd docker-gitlab
+docker pull genshen/gitlab-ce:10.2.2
+docker pull genshen/gitlab-pages:latest
+docker-compose up
+```
+
+And then open browser, visit `http://localhost:10080`.
+
 ## Build docker images
 <!--
             lang       statue   note     config  make
@@ -31,7 +43,6 @@ For currently, only postgresql is supported.
 
 In docker compose, 127.0.0.1 (and its reserved DNS name localhost) always refers to the current container, never the host.
 So, in database config (file config/database.yml), the **host** term should set to postgresql container name.
-
 So is the redis server hostname.
 
 ### gitlab-workhorse
@@ -65,7 +76,7 @@ The symbolic link of following directories are created to `${GITLAB_DATA_DIR}`, 
 | ${GITLAB_DIR}/config         |  ${GITLAB_CONFIG_DIR} |
 
 ## Run gitlab
-Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 8181. You can alse change environment variable `WORKHORSE_LISTEN_NETWORK` from "unix" (default value is "tcp") to let gitlab-workhorse listen unix socket `${GITLAB_DATA_DIR}/tmp/sockets/gitlab.socket`.
+Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 8181. You can alse change environment variable `WORKHORSE_LISTEN_NETWORK` to "unix" (default value is "tcp") to let gitlab-workhorse listen unix socket `${GITLAB_DATA_DIR}/tmp/sockets/gitlab.socket`.
 
 ## Gitlab-Pages
 Image genshen/gitlab does not containe gitlab-pages.

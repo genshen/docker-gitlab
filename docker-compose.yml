@@ -2,7 +2,7 @@ version: "3"
 services:
   gitlab:
     restart: always
-    image: genshen/gitlab:latest
+    image: genshen/gitlab-ce:10.2.2
     container_name: gitlab_ce
     depends_on:
     - redis
@@ -21,7 +21,7 @@ services:
 
   gitlab-pages:
     restart: always
-    image: genshen/gitlab-pages
+    image: genshen/gitlab-pages:latest
     container_name: gitlab-pages
     # command: ./bin/gitlab-pages -config ./pages.conf    # config file template is at gitlab-pages/page.conf.
     command: ./bin/gitlab-pages -listen-http ":8080" -pages-root  /home/git/gitlab-pages/pages -pages-domain  example.io

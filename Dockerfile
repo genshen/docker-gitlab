@@ -64,7 +64,7 @@ COPY --chown=git:git --from=genshen/gitlab-gitaly-builder ${GITALY_DIR} ${GITALY
 COPY --chown=git:git --from=genshen/gitlab-builder ${GITLAB_DIR} ${GITLAB_DIR}/
 
 # https://github.com/ochinchina/supervisord
-# COPY --from=ochinchina/supervisord:latest /usr/local/bin/supervisord /usr/local/bin/supervisord
+# COPY --from=ochinchina/supervisord:latest /usr/local/bin/supervisord
 
 COPY create.sh entrypoint.sh /usr/local/sbin/
 RUN chmod +x /usr/local/sbin/create.sh /usr/local/sbin/entrypoint.sh \
