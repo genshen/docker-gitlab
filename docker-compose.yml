@@ -2,7 +2,7 @@ version: "3"
 services:
   gitlab:
     restart: always
-    image: genshen/gitlab-ce:10.2.2
+    image: genshen/gitlab-ce:latest
     container_name: gitlab_ce
     depends_on:
     - redis

@@ -36,12 +36,13 @@ COPY --chown=root:root --from=ruby-env /usr/local/ruby /usr/local/ruby/
 
 ## create a user ans setup env.
 # package postgresql-client is not installed.
+# libxml2 is needed for db:migrate todo
 # zip unzip is used for artifacts extract.
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && apt-get clean && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
-    libpq5 libicu57 libre2-3 \
+    libxml2 libpq5 libicu57 libre2-3 \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && gem install bundler --no-ri --no-rdoc \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \

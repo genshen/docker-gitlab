@@ -3,7 +3,7 @@
 ```bash
 git clone https://github.com/genshen/docker-gitlab.git
 cd docker-gitlab
-docker pull genshen/gitlab-ce:10.2.2
+docker pull genshen/gitlab-ce:latest
 docker pull genshen/gitlab-pages:latest
 docker-compose up
 ```
