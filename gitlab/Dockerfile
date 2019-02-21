@@ -1,7 +1,7 @@
 FROM genshen/gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v11.6.0
+    GITLAB_VERSION=v11.7.5
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-ce.git"
@@ -28,7 +28,8 @@ RUN cd ${GITLAB_BUILD_DIR} \
     bundle exec rake gettext:compile RAILS_ENV=production; \
     yarn install --production --pure-lockfile ; \
     yarn add ajv@^4.0.0; \
-    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true" \
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true; \
+    bundle exec rake cache:clear RAILS_ENV=production " \
     && rm -rf ${GITLAB_BUILD_DIR}/node_modules
 
 ## data copy and clean unnecessary data.

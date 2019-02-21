@@ -5,9 +5,9 @@ FROM debian:9.5-slim AS gitlab-base-builder
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.4.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v8.12.0/node-v8.12.0-linux-x64.tar.xz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.5.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v10.15.1/node-v10.15.1-linux-x64.tar.xz"
 
 ## todo move some env to ARG
 ENV BUILD_PROS=16 \
@@ -24,8 +24,9 @@ RUN apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get in
     sudo git-core wget curl build-essential cmake \
     zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
     libncurses5-dev libffi-dev libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
-    openssh-server checkinstall logrotate rsync python-docutils pkg-config \
-    && echo "installing ruby." \
+    openssh-server checkinstall logrotate rsync python-docutils pkg-config
+
+RUN echo "installing ruby." \
     && wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
@@ -35,12 +36,14 @@ RUN apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get in
     && make install \
     && gem install bundler --no-ri --no-rdoc \
     && cd /tmp \
-    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz \
-    && echo "installing go." \
+    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
+
+RUN echo "installing go." \
     && wget ${GOLANG_DOWNLOAD_URL} -O /tmp/go.tar.gz \
     && tar -C /usr/local -xzf /tmp/go.tar.gz \
-    && rm /tmp/go.tar.gz \
-    && echo "installing node." \
+    && rm /tmp/go.tar.gz
+
+RUN echo "installing node." \
     && wget ${NODEJS_DOWNLOAD_URL} -O /tmp/node.tar.xz \
     && mkdir -p /usr/local/node \
     && tar -xf /tmp/node.tar.xz -C /usr/local/node --strip-components=1 \
