@@ -5,7 +5,7 @@ FROM debian:9.5-slim AS ruby-env
 
 ## the ruby is installed from source code.
 # note: make sure the version of ruby is the same as in images gitlab-base-builder(Dockerfile in builder dir).
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.gz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.5.tar.gz"
 
 RUN apt-get clean \
     && apt-get update -y \

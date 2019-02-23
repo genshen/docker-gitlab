@@ -5,7 +5,7 @@ FROM debian:9.5-slim AS gitlab-base-builder
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.3.tar.gz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.4/ruby-2.4.5.tar.gz"
 ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.11.5.linux-amd64.tar.gz"
 ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v10.15.1/node-v10.15.1-linux-x64.tar.xz"
 
