@@ -117,7 +117,7 @@ FROM gitlab-base-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v8.0.2"
+     GITLAB_WORKHORSE_VERSION_TAG="v8.3.1"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_WORKHORSE_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-workhorse.git"
@@ -139,7 +139,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v1.12.2"
+     GITLAB_GITALY_VERSION_TAG="v1.20.0"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -169,7 +169,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v11.7.5
+    GITLAB_VERSION=v11.8.0
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-ce.git"
