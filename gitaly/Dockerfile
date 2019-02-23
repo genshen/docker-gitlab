@@ -1,5 +1,5 @@
-FROM genshen/gitlab-base-builder AS gitlab-gitaly-builder
-### docker build --rm -t genshen/gitlab-gitaly-builder .
+FROM gitlab-base-builder AS gitlab-gitaly-builder
+### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
      GITLAB_GITALY_VERSION_TAG="v1.12.2"

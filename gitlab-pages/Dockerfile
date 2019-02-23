@@ -1,4 +1,4 @@
-FROM genshen/gitlab-base-builder AS gitlab-pages-builder
+FROM gitlab-base-builder AS gitlab-pages-builder
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.

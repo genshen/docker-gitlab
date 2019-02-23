@@ -1,5 +1,5 @@
-FROM genshen/gitlab-base-builder AS gitlab-workhorse-builder
-### docker build --rm -t genshen/gitlab-workhorse-builder .
+FROM gitlab-base-builder AS gitlab-workhorse-builder
+### docker build --rm -t gitlab-workhorse-builder .
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.

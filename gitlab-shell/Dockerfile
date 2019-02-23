@@ -1,5 +1,5 @@
-FROM genshen/gitlab-base-builder AS gitlab-shell-builder
-### docker build --rm -t genshen/gitlab-shell-builder .
+FROM gitlab-base-builder AS gitlab-shell-builder
+### docker build --rm -t gitlab-shell-builder .
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.

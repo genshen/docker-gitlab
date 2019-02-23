@@ -1,6 +1,6 @@
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
 FROM debian:9.5-slim AS gitlab-base-builder
-# docker build --rm -t genshen/gitlab-builder  .
+# docker build --rm -t gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."

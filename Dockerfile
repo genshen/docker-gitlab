@@ -65,10 +65,10 @@ ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \
     WORKHORSE_LISTEN_NETWORK="tcp"
 
 # note: replace ${GITLAB_USER} as git.
-COPY --chown=git:git --from=genshen/gitlab-shell-builder ${GITLAB_SHELL_DIR} ${GITLAB_SHELL_DIR}/
-COPY --chown=git:git --from=genshen/gitlab-workhorse-builder ${GITLAB_WORKHORSE_DIR} ${GITLAB_WORKHORSE_DIR}/
-COPY --chown=git:git --from=genshen/gitlab-gitaly-builder ${GITALY_DIR} ${GITALY_DIR}/
-COPY --chown=git:git --from=genshen/gitlab-builder ${GITLAB_DIR} ${GITLAB_DIR}/
+COPY --chown=git:git --from=gitlab-shell-builder ${GITLAB_SHELL_DIR} ${GITLAB_SHELL_DIR}/
+COPY --chown=git:git --from=gitlab-workhorse-builder ${GITLAB_WORKHORSE_DIR} ${GITLAB_WORKHORSE_DIR}/
+COPY --chown=git:git --from=gitlab-gitaly-builder ${GITALY_DIR} ${GITALY_DIR}/
+COPY --chown=git:git --from=gitlab-builder ${GITLAB_DIR} ${GITLAB_DIR}/
 
 # https://github.com/ochinchina/supervisord
 # COPY --from=ochinchina/supervisord:latest /usr/local/bin/supervisord

@@ -1,4 +1,4 @@
-FROM genshen/gitlab-base-builder AS gitlab-builder
+FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
     GITLAB_VERSION=v11.7.5

@@ -21,20 +21,24 @@ gitlab      ruby
 -->
 ```bash
 cd builder
-docker build --rm -t genshen/gitlab-base-builder .
+docker build --rm -t gitlab-base-builder .
 cd ../gitlab-shell
-docker build --rm -t genshen/gitlab-shell-builder .
+docker build --rm -t gitlab-shell-builder .
 cd ../gitlab-workhorse
-docker build --rm -t genshen/gitlab-workhorse-builder .
+docker build --rm -t gitlab-workhorse-builder .
 cd ../gitaly
-docker build --rm -t genshen/gitlab-gitaly-builder .
+docker build --rm -t gitlab-gitaly-builder .
 cd ../gitlab
-docker build --rm -t genshen/gitlab-builder .
+docker build --rm -t gitlab-builder .
 # building intermediate images finished.
 cd ../gitlab-pages
 docker build --rm -t genshen/gitlab-pages .
 cd ../
 docker build --rm -t genshen/gitlab-ce .
+```
+or you can build all images using all-in-one Dockerfile.
+```
+docker build --file all-in-one/Dockerfile --rm -t genshen/gitlab-ce .
 ```
 
 ## Configure notice.
@@ -79,6 +83,6 @@ The symbolic link of following directories are created to `${GITLAB_DATA_DIR}`, 
 Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 8181. You can also change environment variable `WORKHORSE_LISTEN_NETWORK` to "unix" (default value is "tcp") to let gitlab-workhorse listen unix socket `${GITLAB_DATA_DIR}/tmp/sockets/gitlab.socket`.
 
 ## Gitlab-Pages
-Image genshen/gitlab does not containe gitlab-pages.
+Image genshen/gitlab-ce does not containe gitlab-pages.
 If you need gitlab-pages, you can pull genshen/gitlab-pages.
 You should then following this [link](https://docs.gitlab.com/ce/administration/pages/source.html) to config your gitlab-pages.
