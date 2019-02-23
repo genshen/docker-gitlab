@@ -28,8 +28,7 @@ RUN cd ${GITLAB_BUILD_DIR} \
     bundle exec rake gettext:compile RAILS_ENV=production; \
     yarn install --production --pure-lockfile ; \
     yarn add ajv@^4.0.0; \
-    bundle exec rake gitlab:assets:compile RAILS_ENV=production USE_DB=false SKIP_STORAGE_VALIDATION=true; \
-    bundle exec rake cache:clear RAILS_ENV=production " \
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production NODE_ENV=production NODE_OPTIONS='--max_old_space_size=2048';" \
     && rm -rf ${GITLAB_BUILD_DIR}/node_modules
 
 ## data copy and clean unnecessary data.

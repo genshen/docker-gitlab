@@ -18,8 +18,9 @@ ENV BUILD_PROS=16 \
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; checkinstall and pkg-config not installed, openssl is replace by libressl-dev.
 # install ca-certificates apt-transport-https packages for downloading from https website(e.g. golang, nodejs).
-RUN apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ca-certificates apt-transport-https \
-    && sed -i 's#http://deb.debian.org#https://mirrors.ustc.edu.cn#g' /etc/apt/sources.list \
+RUN apt-get clean && apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y ca-certificates apt-transport-https \
+#    && sed -i 's#http://deb.debian.org#https://mirrors.ustc.edu.cn#g' /etc/apt/sources.list \ # use mirror
     && apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo git-core wget curl build-essential cmake \
     zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
