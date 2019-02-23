@@ -38,5 +38,5 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
     && rm -rf ${GITLAB_BUILD_DIR}/tmp/cache/* ${GITLAB_BUILD_DIR}/.git \
     && mkdir -p ${GITLAB_INSTALL_DIR} \
     && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
-    && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/ \
+    && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/
     # copy from build dir to install dir (including hiden dirs).

@@ -83,6 +83,7 @@ RUN echo "configure git user." \
     && sudo -HEu ${GITLAB_USER} git config --global gc.auto 0 \
     && sudo -HEu ${GITLAB_USER} git config --global repack.writeBitmaps true
     # deprecated: echo "\nexport PATH=/usr/local/go/bin:/usr/local/node/bin:~/.yarn/bin:\$PATH" >> /etc/profile \
+
 ################################
 ## image of gitlab-shell-builder
 ################################
@@ -109,6 +110,7 @@ RUN mkdir -p ${GITLAB_SHELL_INSTALL_DIR} \
     && rm -rf ${GITLAB_HOME}/repositories go_build
 
 # remove unused repositories directory created by gitlab-shell install
+
 ################################
 ## image of gitlab-workhorse-builder
 ################################
@@ -133,6 +135,7 @@ RUN git clone -q -b ${GITLAB_WORKHORSE_VERSION_TAG} --depth 1 ${GITLAB_WORKHORSE
     && rm -rf ${GITLAB_WORKHORSE_BUILD_DIR}
 
 ## the binary is located in ${GITLAB_WORKHORSE_INSTALL_DIR}/bin
+
 ################################
 ## image of gitlab-gitaly-builder
 ################################
@@ -164,7 +167,9 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 # && cp -a ${GITLAB_GITALY_BUILD_DIR}/ruby ${GITLAB_GITALY_INSTALL_DIR} \
 # && cp -a ${GITLAB_GITALY_BUILD_DIR}/config.toml.example ${GITLAB_GITALY_INSTALL_DIR}/config.toml \
 # && rm -rf ${GITLAB_GITALY_INSTALL_DIR}/ruby/vendor/bundle/ruby/**/cache \
-# && cp -r ${GITLAB_GITALY_BUILD_DIR}/bin ${GITLAB_GITALY_INSTALL_DIR} \################################
+# && cp -r ${GITLAB_GITALY_BUILD_DIR}/bin ${GITLAB_GITALY_INSTALL_DIR} \
+
+################################
 ## image of gitlab-builder
 ################################
 FROM gitlab-base-builder AS gitlab-builder
@@ -207,8 +212,9 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
     && rm -rf ${GITLAB_BUILD_DIR}/tmp/cache/* ${GITLAB_BUILD_DIR}/.git \
     && mkdir -p ${GITLAB_INSTALL_DIR} \
     && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
-    && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/ \
+    && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/
     # copy from build dir to install dir (including hiden dirs).
+
 ################################
 ## image of genshen/gitlab-ce
 ################################

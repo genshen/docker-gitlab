@@ -20,6 +20,7 @@ cat builder/Dockerfile >> ${DockerFile}
 
 
 cat >> ${DockerFile}  <<EOF
+
 ################################
 ## image of gitlab-shell-builder
 ################################
@@ -28,6 +29,7 @@ cat gitlab-shell/Dockerfile >> ${DockerFile}
 
 
 cat >> ${DockerFile}  <<EOF
+
 ################################
 ## image of gitlab-workhorse-builder
 ################################
@@ -36,6 +38,7 @@ cat gitlab-workhorse/Dockerfile >> ${DockerFile}
 
 
 cat >> ${DockerFile}  <<EOF
+
 ################################
 ## image of gitlab-gitaly-builder
 ################################
@@ -44,6 +47,7 @@ cat gitaly/Dockerfile >> ${DockerFile}
 
 
 cat >> ${DockerFile}  <<EOF
+
 ################################
 ## image of gitlab-builder
 ################################
@@ -52,6 +56,7 @@ cat gitlab/Dockerfile >> ${DockerFile}
 
 
 cat >> ${DockerFile}  <<EOF
+
 ################################
 ## image of genshen/gitlab-ce
 ################################
