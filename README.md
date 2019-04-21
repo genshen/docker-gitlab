@@ -5,6 +5,8 @@ git clone https://github.com/genshen/docker-gitlab.git
 cd docker-gitlab
 docker pull genshen/gitlab-ce:latest
 docker pull genshen/gitlab-pages:latest
+mkdir -p data/gitlab data/gitlab-pages data/postgresql data/redis
+docker-compose run --rm gitlab init # initialize gitlab database
 docker-compose up
 ```
 
@@ -41,7 +43,7 @@ or you can build all images using all-in-one Dockerfile.
 docker build --file all-in-one/Dockerfile --rm -t genshen/gitlab-ce .
 ```
 
-## Configure notice.
+## Notes for configuration.
 ### Database
 For currently, only postgresql is supported.
 
@@ -52,7 +54,7 @@ So is the redis server hostname.
 ### gitlab-workhorse
 In entrypoint of this gitlab image, the path of file *.gitlab_workhorse_secret* is set to be `${GITLAB_WORKHORSE_DIR}/.gitlab_workhorse_secret` (${GITLAB_WORKHORSE_DIR} is usually /home/git/gitlab-workhorse).  
 if .gitlab_workhorse_secret file path is not configured correctly, the clone will return http 500 error when using http(s) protocol.  
-You should also config .gitlab_workhorse_secret file path in config file `config/gitlab.yml`.  
+You should also config .gitlab_workhorse_secret file path in `workhorse.secret_file` in config file `config/gitlab.yml`.  
 
 ## data map
 The symbolic link of following directories are created to `${GITLAB_DATA_DIR}`, `${GITLAB_LOG_DIR}` or `${GITLAB_CONFIG_DIR}`.
@@ -85,4 +87,4 @@ Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 81
 ## Gitlab-Pages
 Image genshen/gitlab-ce does not containe gitlab-pages.
 If you need gitlab-pages, you can pull genshen/gitlab-pages.
-You should then following this [link](https://docs.gitlab.com/ce/administration/pages/source.html) to config your gitlab-pages.
+You should then follow this [link](https://docs.gitlab.com/ce/administration/pages/source.html) to config your gitlab-pages.

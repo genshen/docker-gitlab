@@ -230,7 +230,8 @@ usage() {
     cat << EOF
 Arguments:
     help            - show this help messgae.
-    start           - init container and start gitlab service.
+    init            - init gitlab database.
+    start           - start gitlab service.
     run [command]   - init filesystem (setting data files, and ssh config) and then run a specified command.
     [command]       - run the specified command, eg. bash.
 EOF
@@ -246,6 +247,19 @@ if [ "$1" != "" ]; then
             shift 1
             run_rake_task $@
         ;;
+        init)
+            echo "setting up data directory."
+            # config_ssh
+            config_filesystem
+            echo "done"
+            echo "starting gitaly."
+            start-stop-daemon --background --start --chdir ${GITALY_DIR} --chuid ${GITLAB_USER} \
+                --exec ${GITALY_DIR}/bin/gitaly -- ${GITALY_DIR}/config.toml
+            echo "done"
+            echo "inititalizing database."
+            init_db
+            echo "done"
+        ;;
         run)
             echo "initializing sshd service and setting up data directory."
             config_ssh
@@ -254,15 +268,12 @@ if [ "$1" != "" ]; then
             shift
             exec "$@"
             ;;
-        start)         
+        start)
             echo "initializing sshd service and setting up data directory."
             config_ssh
             config_filesystem
             echo "done"
 
-            echo "inititalizing database."
-            init_db
-            echo "done"
             # sshd re-exec requires execution with an absolute path.
             # start-stop-daemon is only used on debian system.
             echo "starting sshd daemons."
