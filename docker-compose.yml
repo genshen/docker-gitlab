@@ -8,10 +8,10 @@ services:
     - redis
     - postgresql
     ports:
-    - "10080:8181"
-    - "2222:22"
+    - ":::10080:8181"
+    - ":::2222:22"
     environment:
-    - WORKHORSE_LISTEN_NETWORK=unix
+    - WORKHORSE_LISTEN_NETWORK=tcp  # or unix
     - GITLAB_PAGES=ture
     volumes:
     - ./config:/etc/gitlab
@@ -26,7 +26,7 @@ services:
     # command: ./bin/gitlab-pages -config ./pages.conf    # config file template is at gitlab-pages/page.conf.
     command: ./bin/gitlab-pages -listen-http ":8080" -pages-root  /home/git/gitlab-pages/pages -pages-domain  example.io
     ports:
-    - "8090:8080"
+    - ":::8090:8080"
     volumes:
     #- ./data/gitlab-pages/pages.log:/home/git/gitlab-pages/pages.conf
     #- ./data/gitlab-pages/gitlab-pages.log:/home/git/gitlab-pages/gitlab-pages.log
