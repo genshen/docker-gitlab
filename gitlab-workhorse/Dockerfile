@@ -4,7 +4,7 @@ FROM gitlab-base-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v8.3.1"
+     GITLAB_WORKHORSE_VERSION_TAG="v8.3.3"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_WORKHORSE_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-workhorse.git"
