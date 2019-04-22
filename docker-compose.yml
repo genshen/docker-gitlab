@@ -11,7 +11,7 @@ services:
     - ":::10080:8181"
     - ":::2222:22"
     environment:
-    - WORKHORSE_LISTEN_NETWORK=unix
+    - WORKHORSE_LISTEN_NETWORK=tcp  # or unix
     - GITLAB_PAGES=ture
     volumes:
     - ./config:/etc/gitlab
