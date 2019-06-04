@@ -43,9 +43,12 @@ RUN echo "installing ruby." \
     && ./configure --disable-install-rdoc --prefix=/usr/local \
     && make -j ${BUILD_PROS} \
     && make install \
-    && gem install bundler --no-ri --no-rdoc \
+    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && cd /tmp \
     && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
+# fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
+# https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
+
 
 RUN echo "installing go." \
     && wget ${GOLANG_DOWNLOAD_URL} -O /tmp/go.tar.gz \
@@ -270,10 +273,12 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
     libxml2 libpq5 libicu57 libre2-3 \
     && export PATH=/usr/local/ruby/bin:$PATH \
-    && gem install bundler --no-ri --no-rdoc \
+    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ 
+# fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
+# https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
 
 ## define gitlab components install directories.
 ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \

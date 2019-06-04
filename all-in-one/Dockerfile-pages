@@ -41,9 +41,12 @@ RUN echo "installing ruby." \
     && ./configure --disable-install-rdoc --prefix=/usr/local \
     && make -j ${BUILD_PROS} \
     && make install \
-    && gem install bundler --no-ri --no-rdoc \
+    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && cd /tmp \
     && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
+# fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
+# https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
+
 
 RUN echo "installing go." \
     && wget ${GOLANG_DOWNLOAD_URL} -O /tmp/go.tar.gz \
