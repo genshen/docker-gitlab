@@ -88,3 +88,21 @@ Run `docker-compose up` command, the gitlab-workhorse will listen on tcp port 81
 Image genshen/gitlab-ce does not containe gitlab-pages.
 If you need gitlab-pages, you can pull genshen/gitlab-pages.
 You should then follow this [link](https://docs.gitlab.com/ce/administration/pages/source.html) to config your gitlab-pages.
+
+## Gitlab-ce Update
+when performing gitlab-ce version update. 
+In database migrations step, your must install postgresql-client-11 package (it is not included in gitlab-ce image).
+```bash
+docker-compose up
+docker exec -it gitlab_ce bash
+```
+```bash
+# in gitlab_ce container's bash, run:
+echo -e "\ndeb http://ftp.de.debian.org/debian sid main" >> /etc/apt/sources.list
+apt-get update
+apt-get install postgresql-client-11
+# run database migrations:
+su -  git
+cd ~/gitlab
+bundle exec rake db:migrate RAILS_ENV=production
+```
