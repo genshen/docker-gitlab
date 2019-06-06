@@ -146,7 +146,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v1.42.2"
+     GITLAB_GITALY_VERSION_TAG="v1.42.3"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -178,7 +178,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v11.11.1
+    GITLAB_VERSION=v11.11.2
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-ce.git"
