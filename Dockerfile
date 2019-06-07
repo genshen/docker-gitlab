@@ -45,11 +45,15 @@ COPY --chown=root:root --from=gitlab-base-builder /usr/local/git /usr/local/git/
 # package postgresql-client is not installed.
 # libxml2 is needed for db:migrate todo
 # zip unzip is used for artifacts extract.
+# "sid main" is used for installing postgresql-client-11
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
-    && apt-get clean && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    && echo -e "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
+    && apt-get clean \
+    && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
-    libxml2 libpq5 libicu57 libre2-3 \
+    libxml2 libpq5 libicu57 libre2-3  \
+    postgresql-client-11  \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
