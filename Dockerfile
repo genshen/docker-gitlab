@@ -39,6 +39,7 @@ ENV GITLAB_USER="git" \
     RAILS_ENV=production
 
 COPY --chown=root:root --from=ruby-env /usr/local/ruby /usr/local/ruby/
+COPY --chown=root:root --from=gitlab-base-builder /usr/local/git /usr/local/git/
 
 ## create a user ans setup env.
 # package postgresql-client is not installed.
@@ -51,9 +52,14 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     libxml2 libpq5 libicu57 libre2-3 \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
+    && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
-    && ln -s /usr/local/ruby/lib/* /usr/local/lib/ 
+    && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
+    && ln -s /usr/local/git/bin/* /usr/local/bin/  \
+    && ln -s /usr/local/git/libexec/* /usr/local/libexec/ \
+    && ln -s /usr/local/git/share/* /usr/local/share/ 
+
 # fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
 # https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
 
