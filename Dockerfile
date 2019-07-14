@@ -1,7 +1,7 @@
 ###################################################
 ## Docker image of built ruby binary.
 ###################################################
-FROM debian:9.5-slim AS ruby-env
+FROM debian:buster-slim AS ruby-env
 
 ## the ruby is installed from source code.
 # note: make sure the version of ruby is the same as in images gitlab-base-builder(Dockerfile in builder dir).
@@ -24,7 +24,7 @@ RUN wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
 ###################################################
 ## the final Docker image genshen/gitlab-ce:latest
 ###################################################
-FROM debian:9.5-slim AS gitlab
+FROM debian:buster-slim AS gitlab
 
 LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab images, which includes necessary gitlab components: gitlab-server, gitaly, gitlab-shell, gitlab-workhorse."

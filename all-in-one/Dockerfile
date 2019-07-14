@@ -7,7 +7,7 @@
 ## image of gitlab-base-builder
 ################################
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM debian:9.5-slim AS gitlab-base-builder
+FROM debian:buster-slim AS gitlab-base-builder
 # docker build --rm -t gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
@@ -252,7 +252,7 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
 ###################################################
 ## Docker image of built ruby binary.
 ###################################################
-FROM debian:9.5-slim AS ruby-env
+FROM debian:buster-slim AS ruby-env
 
 ## the ruby is installed from source code.
 # note: make sure the version of ruby is the same as in images gitlab-base-builder(Dockerfile in builder dir).
@@ -275,7 +275,7 @@ RUN wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
 ###################################################
 ## the final Docker image genshen/gitlab-ce:latest
 ###################################################
-FROM debian:9.5-slim AS gitlab
+FROM debian:buster-slim AS gitlab
 
 LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab images, which includes necessary gitlab components: gitlab-server, gitaly, gitlab-shell, gitlab-workhorse."
@@ -296,11 +296,15 @@ COPY --chown=root:root --from=gitlab-base-builder /usr/local/git /usr/local/git/
 # package postgresql-client is not installed.
 # libxml2 is needed for db:migrate todo
 # zip unzip is used for artifacts extract.
+# "sid main" is used for installing postgresql-client-11
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
-    && apt-get clean && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
+    && echo -e "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
+    && apt-get clean \
+    && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
-    libxml2 libpq5 libicu57 libre2-3 \
+    libxml2 libpq5 libicu57 libre2-3  \
+    postgresql-client-11  \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
