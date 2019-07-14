@@ -305,7 +305,7 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
-    libxml2 libpq5 libicu57 libre2-3  \
+    libxml2 libpq5 libicu63 libre2-5  \
     postgresql-client-11  \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
