@@ -301,7 +301,7 @@ COPY --chown=root:root --from=gitlab-base-builder /usr/local/git /usr/local/git/
 # "sid main" is used for installing postgresql-client-11
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
-    && echo -e "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
+    && printf "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
