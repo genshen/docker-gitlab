@@ -26,7 +26,7 @@ ENV BUILD_PROS=16 \
     RAILS_ENV=production
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
-# note: libre2-dev comes from community; checkinstall and pkg-config not installed, openssl is replace by libressl-dev.
+# note: libre2-dev comes from community; openssl is replace by libressl-dev.
 # libexpat1-dev gettext libz-dev is used for git building.
 # install ca-certificates apt-transport-https packages for downloading from https website(e.g. golang, nodejs).
 RUN apt-get clean && apt-get update \
@@ -37,7 +37,9 @@ RUN apt-get clean && apt-get update \
     libexpat1-dev gettext libz-dev \
     zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
     libncurses5-dev libffi-dev libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
-    openssh-server checkinstall logrotate rsync python-docutils pkg-config
+    openssh-server logrotate rsync python-docutils pkg-config
+
+# fixme: checkinstall is not installed, due to error "Unable to locate package checkinstall".
 
 RUN echo "installing ruby." \
     && wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
@@ -124,7 +126,7 @@ FROM gitlab-base-builder AS gitlab-shell-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
 ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_SHELL_VERSION_TAG="v9.1.0"
+    GITLAB_SHELL_VERSION_TAG="v9.3.0"
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -174,7 +176,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v1.42.3"
+     GITLAB_GITALY_VERSION_TAG="v1.47.0"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -206,7 +208,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v11.11.2
+    GITLAB_VERSION=v12.0.3
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-ce.git"
