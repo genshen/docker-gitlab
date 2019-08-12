@@ -21,9 +21,10 @@ bin_dir = "/home/git/gitaly/bin"
 # certificate_path = '/home/git/cert.cert'
 # key_path = '/home/git/key.pem'
 
-# # Git executable settings
+# # Git settings
 # [git]
 # bin_path = "/usr/bin/git"
+# catfile_cache_size = 100
 
 [[storage]]
 name = "default"
@@ -38,6 +39,8 @@ path = "/home/git/repositories"
 
 # # You can optionally configure Gitaly to output JSON-formatted log messages to stdout
 # [logging]
+# # The directory where Gitaly stores extra log files
+dir = "/home/git/gitlab/log"
 # format = "json"
 # # Optional: Set log level to only log entries with that severity or above
 # # One of, in order: debug, info, warn, errror, fatal, panic
