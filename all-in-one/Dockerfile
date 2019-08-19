@@ -295,7 +295,7 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
-    && ln -s /usr/local/git/bin/* /usr/local/bin/  \
+    && ln -s /usr/local/git/bin/* /usr/bin/  \
     && ln -s /usr/local/git/libexec/* /usr/local/libexec/ \
     && ln -s /usr/local/git/share/* /usr/local/share/
 
