@@ -13,11 +13,11 @@ FROM debian:buster-slim AS gitlab-base-builder
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.5.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.12.7.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v10.16.0/node-v10.16.0-linux-x64.tar.xz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.3.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.12.9.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz"
 ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.33.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.22.0.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.23.0.tar.gz"
 
 ## todo move some env to ARG
 ENV BUILD_PROS=16 \
@@ -258,7 +258,7 @@ FROM debian:buster-slim AS ruby-env
 
 ## the ruby is installed from source code.
 # note: make sure the version of ruby is the same as in images gitlab-base-builder(Dockerfile in builder dir).
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.5/ruby-2.5.5.tar.gz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.3.tar.gz"
 
 RUN apt-get clean \
     && apt-get update -y \
