@@ -7,7 +7,7 @@
 ## image of gitlab-base-builder
 ################################
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM debian:buster-slim AS gitlab-base-builder
+FROM debian:buster-slim AS gitlab-base-packages-builder
 # docker build --rm -t gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
@@ -18,12 +18,6 @@ ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.12.9.linux-amd64.tar.gz"
 ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz"
 ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.33.tar.gz"
 ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.23.0.tar.gz"
-
-## todo move some env to ARG
-ENV BUILD_PROS=16 \
-    GITLAB_USER="git" \
-    GITLAB_HOME="/home/git" \
-    RAILS_ENV=production
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -46,12 +40,16 @@ RUN echo "installing ruby." \
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
     && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc --prefix=/usr/local \
-    && make -j ${BUILD_PROS} \
+    && ./configure --disable-install-rdoc --prefix=/usr/local/ruby \
+    && make -j $(nproc) \
     && make install \
-    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && cd /tmp \
-    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
+    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz \
+    && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
+    && ln -s /usr/local/ruby/include/* /usr/local/include/ \
+    && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
+    && gem install bundler --version 1.17.3 --no-ri --no-rdoc
+
 # fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
 # https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
 
@@ -70,14 +68,14 @@ RUN echo "installing node." \
     && npm install --global yarn
 
 RUN echo "installing libpcre dependency for git." \
-    && cd /tmp \ 
+    && cd /tmp \
     && wget ${LIBPCRE_DOWNLOAD_URL} -O pcre2.tar.gz \
     && mkdir -p /tmp/pcre2-src  \
     && tar -zxf pcre2.tar.gz -C /tmp/pcre2-src --strip-components=1 \
     && cd pcre2-src \
     && chmod +x configure \
     && ./configure --prefix=/usr/local/ --enable-jit --enable-shared=no --enable-static=yes \
-    && make && make install \
+    && make -j $(nproc) && make install \
     && rm -rf /tmp/pcre2.tar.gz /tmp/pcre2-src
 
 RUN echo "installing git." \
@@ -88,7 +86,7 @@ RUN echo "installing git." \
     && cd git-src \
     && chmod +x configure \
     && ./configure --with-libpcre --prefix=/usr/local/git \
-    && make all && make install \
+    && make all -j $(nproc) && make install \
     && ln -s /usr/local/git/bin/* /usr/bin/  \
     && rm -rf /tmp/git.tar.gz /tmp/git-src
 
@@ -98,6 +96,13 @@ RUN echo "installing git." \
 ## error: 'int isinf(double)' conflicts with a previous declaration RUBY_EXTERN int isinf(double);
 ## see: https://github.com/gliderlabs/docker-alpine/issues/261#issuecomment-285307909 and
 ## https://github.com/knu/ruby-unf_ext/issues/18.
+
+FROM gitlab-base-packages-builder AS gitlab-base-builder
+
+## todo move some env to ARG
+ENV GITLAB_USER="git" \
+    GITLAB_HOME="/home/git" \
+    RAILS_ENV=production
 
 ## nodejs and ruby are installed in /usr/local
 
@@ -222,7 +227,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y li
     && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
      export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
-     bundle install -j ${BUILD_PROS} --deployment --without development test mysql aws kerberos"
+     bundle install -j $(nproc) --deployment --without development test mysql aws kerberos"
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
@@ -252,29 +257,6 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
 ## image of genshen/gitlab-ce
 ################################
 ###################################################
-## Docker image of built ruby binary.
-###################################################
-FROM debian:buster-slim AS ruby-env
-
-## the ruby is installed from source code.
-# note: make sure the version of ruby is the same as in images gitlab-base-builder(Dockerfile in builder dir).
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.3.tar.gz"
-
-RUN apt-get clean \
-    && apt-get update -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    ca-certificates apt-transport-https wget build-essential libssl-dev zlib1g-dev
-
-RUN wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
-    && mkdir /tmp/ruby-src \
-    && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
-    && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc --prefix=/usr/local/ruby \
-    && make -j $(nproc) && make install \
-    && cd /tmp \
-    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
-
-###################################################
 ## the final Docker image genshen/gitlab-ce:latest
 ###################################################
 FROM debian:buster-slim AS gitlab
@@ -291,8 +273,9 @@ ENV GITLAB_USER="git" \
     GITLAB_LOG_DIR="/var/log/gitlab" \
     RAILS_ENV=production
 
-COPY --chown=root:root --from=ruby-env /usr/local/ruby /usr/local/ruby/
-COPY --chown=root:root --from=gitlab-base-builder /usr/local/git /usr/local/git/
+# copy ruby with bundle
+COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/ruby /usr/local/ruby/
+COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/git /usr/local/git/
 
 ## create a user ans setup env.
 # package postgresql-client is not installed.
@@ -304,18 +287,17 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && printf "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
+    sudo nodejs yarn ca-certificates curl openssh-server logrotate zip unzip \
     libxml2 libpq5 libicu63 libre2-5  \
     postgresql-client-11  \
     && export PATH=/usr/local/ruby/bin:$PATH \
-    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
     && ln -s /usr/local/git/bin/* /usr/local/bin/  \
     && ln -s /usr/local/git/libexec/* /usr/local/libexec/ \
-    && ln -s /usr/local/git/share/* /usr/local/share/ 
+    && ln -s /usr/local/git/share/* /usr/local/share/
 
 # fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
 # https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.

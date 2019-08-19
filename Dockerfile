@@ -1,27 +1,4 @@
 ###################################################
-## Docker image of built ruby binary.
-###################################################
-FROM debian:buster-slim AS ruby-env
-
-## the ruby is installed from source code.
-# note: make sure the version of ruby is the same as in images gitlab-base-builder(Dockerfile in builder dir).
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.3.tar.gz"
-
-RUN apt-get clean \
-    && apt-get update -y \
-    && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    ca-certificates apt-transport-https wget build-essential libssl-dev zlib1g-dev
-
-RUN wget ${RUBY_DOWNLOAD_RUL} -O /tmp/ruby.tar.gz \
-    && mkdir /tmp/ruby-src \
-    && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
-    && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc --prefix=/usr/local/ruby \
-    && make -j $(nproc) && make install \
-    && cd /tmp \
-    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
-
-###################################################
 ## the final Docker image genshen/gitlab-ce:latest
 ###################################################
 FROM debian:buster-slim AS gitlab
@@ -38,8 +15,9 @@ ENV GITLAB_USER="git" \
     GITLAB_LOG_DIR="/var/log/gitlab" \
     RAILS_ENV=production
 
-COPY --chown=root:root --from=ruby-env /usr/local/ruby /usr/local/ruby/
-COPY --chown=root:root --from=gitlab-base-builder /usr/local/git /usr/local/git/
+# copy ruby with bundle
+COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/ruby /usr/local/ruby/
+COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/git /usr/local/git/
 
 ## create a user ans setup env.
 # package postgresql-client is not installed.
@@ -51,18 +29,17 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && printf "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    sudo nodejs yarn ca-certificates curl openssh-server git-core logrotate zip unzip \
+    sudo nodejs yarn ca-certificates curl openssh-server logrotate zip unzip \
     libxml2 libpq5 libicu63 libre2-5  \
     postgresql-client-11  \
     && export PATH=/usr/local/ruby/bin:$PATH \
-    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
     && ln -s /usr/local/git/bin/* /usr/local/bin/  \
     && ln -s /usr/local/git/libexec/* /usr/local/libexec/ \
-    && ln -s /usr/local/git/share/* /usr/local/share/ 
+    && ln -s /usr/local/git/share/* /usr/local/share/
 
 # fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
 # https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.

@@ -15,7 +15,7 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y li
     && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
      export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
-     bundle install -j ${BUILD_PROS} --deployment --without development test mysql aws kerberos"
+     bundle install -j $(nproc) --deployment --without development test mysql aws kerberos"
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 

@@ -1,5 +1,5 @@
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM debian:buster-slim AS gitlab-base-builder
+FROM debian:buster-slim AS gitlab-base-packages-builder
 # docker build --rm -t gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
@@ -10,12 +10,6 @@ ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.12.9.linux-amd64.tar.gz"
 ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v10.16.3/node-v10.16.3-linux-x64.tar.xz"
 ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.33.tar.gz"
 ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.23.0.tar.gz"
-
-## todo move some env to ARG
-ENV BUILD_PROS=16 \
-    GITLAB_USER="git" \
-    GITLAB_HOME="/home/git" \
-    RAILS_ENV=production
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -38,12 +32,16 @@ RUN echo "installing ruby." \
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
     && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc --prefix=/usr/local \
-    && make -j ${BUILD_PROS} \
+    && ./configure --disable-install-rdoc --prefix=/usr/local/ruby \
+    && make -j $(nproc) \
     && make install \
-    && gem install bundler --version 1.17.3 --no-ri --no-rdoc \
     && cd /tmp \
-    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz
+    && rm -rf /tmp/ruby-src /tmp/ruby.tar.gz \
+    && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
+    && ln -s /usr/local/ruby/include/* /usr/local/include/ \
+    && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
+    && gem install bundler --version 1.17.3 --no-ri --no-rdoc
+
 # fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
 # https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
 
@@ -62,14 +60,14 @@ RUN echo "installing node." \
     && npm install --global yarn
 
 RUN echo "installing libpcre dependency for git." \
-    && cd /tmp \ 
+    && cd /tmp \
     && wget ${LIBPCRE_DOWNLOAD_URL} -O pcre2.tar.gz \
     && mkdir -p /tmp/pcre2-src  \
     && tar -zxf pcre2.tar.gz -C /tmp/pcre2-src --strip-components=1 \
     && cd pcre2-src \
     && chmod +x configure \
     && ./configure --prefix=/usr/local/ --enable-jit --enable-shared=no --enable-static=yes \
-    && make && make install \
+    && make -j $(nproc) && make install \
     && rm -rf /tmp/pcre2.tar.gz /tmp/pcre2-src
 
 RUN echo "installing git." \
@@ -80,7 +78,7 @@ RUN echo "installing git." \
     && cd git-src \
     && chmod +x configure \
     && ./configure --with-libpcre --prefix=/usr/local/git \
-    && make all && make install \
+    && make all -j $(nproc) && make install \
     && ln -s /usr/local/git/bin/* /usr/bin/  \
     && rm -rf /tmp/git.tar.gz /tmp/git-src
 
@@ -90,6 +88,13 @@ RUN echo "installing git." \
 ## error: 'int isinf(double)' conflicts with a previous declaration RUBY_EXTERN int isinf(double);
 ## see: https://github.com/gliderlabs/docker-alpine/issues/261#issuecomment-285307909 and
 ## https://github.com/knu/ruby-unf_ext/issues/18.
+
+FROM gitlab-base-packages-builder AS gitlab-base-builder
+
+## todo move some env to ARG
+ENV GITLAB_USER="git" \
+    GITLAB_HOME="/home/git" \
+    RAILS_ENV=production
 
 ## nodejs and ruby are installed in /usr/local
 

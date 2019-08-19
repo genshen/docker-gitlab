@@ -12,7 +12,7 @@ ARG  GITLAB_PAGES_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-pages.git"
 RUN git clone -q -b ${GITLAB_PAGES_VERSION_TAG} --depth 1 ${GITLAB_PAGES_DOWNLOAD_URL} ${GITLAB_PAGES_BUILD_DIR} \
     && chown -R ${GITLAB_USER}: ${GITLAB_PAGES_BUILD_DIR} \
     && cd ${GITLAB_PAGES_BUILD_DIR} \
-    && sudo -u ${GITLAB_USER} -H sh -c "export PATH=${GOROOT}/bin:$PATH; make all" \
+    && sudo -u ${GITLAB_USER} -H sh -c "export PATH=${GOROOT}/bin:$PATH; make all -j $(nproc)" \
     && mkdir -p ${GITLAB_PAGES_INSTALL_DIR} \
     && cp -a ${GITLAB_PAGES_BUILD_DIR}/bin ${GITLAB_PAGES_INSTALL_DIR} \
     && cp -a ${GITLAB_PAGES_BUILD_DIR}/shared ${GITLAB_PAGES_INSTALL_DIR} \
