@@ -4,7 +4,7 @@ ENV GITLAB_USER="git" \
     GITLAB_HOME="/home/git" 
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
-## see files in https://gitlab.com/gitlab-org/gitlab-ce for corresponding gitlab version.
+## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_PAGES_INSTALL_DIR="${GITLAB_HOME}/gitlab-pages" \
      GITLAB_PAGES_VERSION_TAG="v1.7.2"
 ARG  GITLAB_PAGES_BUILD_DIR="${GITLAB_HOME}/gitlab-pages-builder"
