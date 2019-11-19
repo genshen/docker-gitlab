@@ -1,4 +1,6 @@
 # Example Gitaly configuration file
+# Documentation lives at https://docs.gitlab.com/ee/administration/gitaly/ and
+# https://docs.gitlab.com/ee//administration/gitaly/reference
 
 socket_path = "/home/git/gitlab/tmp/sockets/private/gitaly.socket"
 
@@ -71,6 +73,10 @@ dir = "/home/git/gitaly/ruby"
 #
 # # Number of gitaly-ruby worker processes
 # num_workers = 2
+#
+# # Search path for system gitconfig file (e.g. /etc, /opt/gitlab/embedded/etc)
+# # NOTE: This only affects RPCs that use Rugged.
+# rugged_git_config_search_path = "/etc"
 
 [gitlab-shell]
 # The directory where gitlab-shell is installed
