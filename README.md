@@ -5,7 +5,7 @@ git clone https://github.com/genshen/docker-gitlab.git
 cd docker-gitlab
 docker pull genshen/gitlab-ce:latest
 docker pull genshen/gitlab-pages:latest
-mkdir -p data/gitlab data/gitlab-pages data/postgresql data/redis
+mkdir -p data/gitlab data/gitlab-pages data/postgresql data/redis data/gitlab-pages/shared
 docker-compose run --rm gitlab init # initialize gitlab database
 docker-compose up
 ```

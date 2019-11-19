@@ -1,4 +1,4 @@
-FROM golang:1.12.9-buster AS gitlab-pages-builder
+FROM golang:1.13.4-buster AS gitlab-pages-builder
 
 ENV GITLAB_USER="git" \
     GITLAB_HOME="/home/git" 
