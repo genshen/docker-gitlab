@@ -1,4 +1,4 @@
-FROM golang:1.13.4-buster AS gitlab-pages-builder
+FROM golang:1.13.7-buster AS gitlab-pages-builder
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.

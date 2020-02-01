@@ -14,10 +14,10 @@ LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.5.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.13.4.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v12.13.0/node-v12.13.0-linux-x64.tar.xz"
-ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.33.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.24.0.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.13.7.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v12.14.1/node-v12.14.1-linux-x64.tar.xz"
+ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.34.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.25.0.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
