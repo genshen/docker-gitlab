@@ -8,7 +8,7 @@
 # If a setting requires an application restart say so in that screen.  #
 # If you change this file in a Merge Request, please also create       #
 # a MR on https://gitlab.com/gitlab-org/omnibus-gitlab/merge_requests. #
-# For more details see https://gitlab.com/gitlab-org/omnibus-gitlab/blob/0928cfb09f43993fd9454b0b14dbd1924b1407bc/doc/settings/gitlab.yml.md #
+# For more details see https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md #
 ########################################################################
 #
 #
@@ -33,6 +33,9 @@ production: &base
     host: localhost
     port: 80 # Set to 443 if using HTTPS, see installation.md#using-https for additional HTTPS configuration details
     https: false # Set to true if using HTTPS, see installation.md#using-https for additional HTTPS configuration details
+    # The maximum time unicorn/puma can spend on the request. This needs to be smaller than the worker timeout.
+    # Default is 95% of the worker timeout
+    max_request_duration_seconds: 57
 
     # Uncomment this line below if your ssh host is different from HTTP/HTTPS one
     # (you'd obviously need to replace ssh.host_example.com with your own host).
@@ -46,6 +49,29 @@ production: &base
     # Uncomment and customize the following line to run in a non-root path
     #
     # relative_url_root: /gitlab
+
+    # Content Security Policy
+    # See https://guides.rubyonrails.org/security.html#content-security-policy
+    content_security_policy:
+      enabled: true
+      report_only: false
+      directives:
+        base_uri:
+        child_src:
+        connect_src: "'self' http://localhost:* ws://localhost:* wss://localhost:*"
+        default_src: "'self'"
+        font_src:
+        form_action:
+        frame_ancestors: "'self'"
+        frame_src: "'self' https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com https://content-cloudresourcemanager.googleapis.com"
+        img_src: "* data: blob:"
+        manifest_src:
+        media_src:
+        object_src: "'none'"
+        script_src: "'self' 'unsafe-eval' http://localhost:* https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://www.gstatic.com/recaptcha/ https://apis.google.com"
+        style_src: "'self' 'unsafe-inline'"
+        worker_src: "'self' blob:"
+        report_uri:
 
     # Trusted Proxies
     # Customize if you have GitLab behind a reverse proxy which is running on a different machine.
@@ -72,6 +98,15 @@ production: &base
     email_display_name: GitLab
     email_reply_to: noreply@example.com
     email_subject_suffix: ''
+    email_smime:
+      # Uncomment and set to true if you need to enable email S/MIME signing (default: false)
+      # enabled: false
+      # S/MIME private key file in PEM format, unencrypted
+      # Default is '.gitlab_smime_key' relative to Rails.root (i.e. root of the GitLab app).
+      # key_file: /home/git/gitlab/.gitlab_smime_key
+      # S/MIME public certificate key in PEM format, will be attached to signed messages
+      # Default is '.gitlab_smime_cert' relative to Rails.root (i.e. root of the GitLab app).
+      # cert_file: /home/git/gitlab/.gitlab_smime_cert
 
     # Email server smtp settings are in config/initializers/smtp_settings.rb.sample
 
@@ -118,6 +153,9 @@ production: &base
     ## Impersonation settings
     impersonation_enabled: true
 
+    ## Disable jQuery and CSS animations
+    # disable_animations: true
+
   ## Reply by email
   # Allow users to comment on issues and merge requests by replying to notification emails.
   # For documentation on how to set this up, see http://doc.gitlab.com/ce/administration/reply_by_email.html
@@ -126,6 +164,7 @@ production: &base
 
     # The email address including the `%{key}` placeholder that will be replaced to reference the item being replied to.
     # The placeholder can be omitted but if present, it must appear in the "user" part of the address (before the `@`).
+    # Please be aware that a placeholder is required for the Service Desk feature to work.
     address: "gitlab-incoming+%{key}@gmail.com"
 
     # Email account username
@@ -148,6 +187,11 @@ production: &base
     mailbox: "inbox"
     # The IDLE command timeout.
     idle_timeout: 60
+    # The log file path for the structured log file.
+    # Since `mail_room` is run independently of Rails, an absolute path is preferred.
+    # The default is 'log/mail_room_json.log' relative to the root of the Rails app.
+    #
+    # log_path: log/mail_room_json.log
 
   ## Build Artifacts
   artifacts:
@@ -286,8 +330,10 @@ production: &base
     artifacts_server: true # Set to false if you want to disable online view of HTML artifacts
     # external_http: ["1.1.1.1:80", "[2001::1]:80"] # If defined, enables custom domain support in GitLab Pages
     # external_https: ["1.1.1.1:443", "[2001::1]:443"] # If defined, enables custom domain and certificate support in GitLab Pages
-    admin:
-      address: unix:/home/git/gitlab/tmp/sockets/private/pages-admin.socket # TCP connections are supported too (e.g. tcp://host:port)
+
+    # File that contains the shared secret key for verifying access for gitlab-pages.
+    # Default is '.gitlab_pages_secret' relative to Rails.root (i.e. root of the GitLab app).
+    # secret_file: /home/git/gitlab/.gitlab_pages_secret
 
   ## Mattermost
   ## For enabling Add to Mattermost button
@@ -306,7 +352,7 @@ production: &base
 
   ## Sidekiq
   sidekiq:
-    log_format: default # (json is also supported)
+    log_format: json # (default is the original format)
 
   ## Auxiliary jobs
   # Periodically executed jobs, to self-heal GitLab, do external synchronizations, etc.
@@ -331,6 +377,9 @@ production: &base
     # Send admin emails once a week
     admin_email_worker:
       cron: "0 0 * * 0"
+    # Send emails for personal tokens which are about to expire
+    personal_access_tokens_expiring_worker:
+      cron: "0 1 * * *"
 
     # Remove outdated repository archives
     repository_archive_cache_worker:
@@ -399,7 +448,17 @@ production: &base
     # key: config/registry.key
     # path: shared/registry
     # issuer: gitlab-issuer
+    # notification_secret: '' # only set it when you use Geo replication feature without built-in Registry
 
+    # Add notification settings if you plan to use Geo Replication for the registry
+    # notifications:
+    # - name: geo_event
+    #   url: https://example.com/api/v4/container_registry_event/events
+    #   timeout: 2s
+    #   threshold: 5
+    #   backoff: 1s
+    #   headers:
+    #     Authorization: secret_phrase
 
   ## Error Reporting and Logging with Sentry
   sentry:
@@ -417,6 +476,18 @@ production: &base
     #
     # If it is blank, it defaults to external_url.
     node_name: ''
+
+    registry_replication:
+      # enabled: true
+      # primary_api_url: http://localhost:5000/ # internal address to the primary registry, will be used by GitLab to directly communicate with primary registry API
+
+  ## Feature Flag https://docs.gitlab.com/ee/user/project/operations/feature_flags.html
+  feature_flags:
+    unleash:
+      # enabled: false
+      # url: https://gitlab.com/api/v4/feature_flags/unleash/<project_id>
+      # app_name: gitlab.com # Environment name of your GitLab instance
+      # instance_id: INSTANCE_ID
 
   #
   # 2. GitLab CI settings
@@ -444,6 +515,7 @@ production: &base
   #   bundle exec rake gitlab:ldap:check RAILS_ENV=production
   ldap:
     enabled: false
+    prevent_ldap_sign_in: false
 
     # This setting controls the number of seconds between LDAP permission checks
     # for each user. After this time has expired for a given user, their next
@@ -667,6 +739,10 @@ production: &base
     # Browser session with smartcard sign-in is required for Git access
     # required_for_git_access: false
 
+    # Use X.509 SAN extensions certificates to identify GitLab users
+    # Add a subjectAltName to your certificates like: email:user
+    # san_extensions: true
+
   ## Kerberos settings
   kerberos:
     # Allow the HTTP Negotiate authentication method for Git clients
@@ -733,6 +809,14 @@ production: &base
     # Refer to the examples below for the full names of the supported providers.
     # (default: [])
     external_providers: []
+
+    # CAUTION!
+    # This allows users to login with the specified providers without two factor. Define the allowed providers
+    # using an array, e.g. ["twitter", 'google_oauth2'], or as true/false to allow all providers or none.
+    # This option should only be configured for providers which already have two factor.
+    # This configration dose not apply to SAML.
+    # (default: false)
+    allow_bypass_two_factor: ["twitter", 'google_oauth2']
 
     ## Auth providers
     # Uncomment the following lines and fill in the data of the auth provider you want to use
@@ -919,6 +1003,10 @@ production: &base
     # Default is '.gitlab_workhorse_secret' relative to Rails.root (i.e. root of the GitLab app).
     # secret_file: /home/git/gitlab/.gitlab_workhorse_secret
 
+  ## GitLab Elasticsearch settings
+  elasticsearch:
+    indexer_path: /home/git/gitlab-elasticsearch-indexer/
+
   ## Git settings
   # CAUTION!
   # Use the default values unless you really know what you are doing
@@ -950,7 +1038,14 @@ production: &base
     sidekiq_exporter:
     #  enabled: true
     #  address: localhost
-    #  port: 3807
+    #  port: 8082
+
+    # Web exporter is webserver built in to Unicorn/Puma to expose Prometheus metrics
+    # It runs alongside the `/metrics` endpoints to ease the publish of metrics
+    web_exporter:
+    #  enabled: true
+    #  address: localhost
+    #  port: 8083
 
   ## Prometheus settings
   # Do not modify these settings here. They should be modified in /etc/gitlab/gitlab.rb
@@ -961,6 +1056,14 @@ production: &base
   prometheus:
     # enable: true
     # listen_address: 'localhost:9090'
+
+  shutdown:
+    #  # blackout_seconds:
+    #  #   defines an interval to block healthcheck,
+    #  #   but continue accepting application requests
+    #  #   this allows Load Balancer to notice service
+    #  #   being shutdown and not interrupt any of the clients
+    #  blackout_seconds: 10
 
   #
   # 5. Extra customization
@@ -993,6 +1096,21 @@ production: &base
 
 development:
   <<: *base
+
+  # We want to run web/sidekiq exporters for devs
+  # to catch errors from using them.
+  #
+  # We use random port to not block ability to run
+  # multiple instances of the service
+  monitoring:
+    sidekiq_exporter:
+      enabled: true
+      address: 127.0.0.1
+      port: 0
+    web_exporter:
+      enabled: true
+      address: 127.0.0.1
+      port: 0
 
 test:
   <<: *base
@@ -1052,6 +1170,27 @@ test:
   gitlab:
     host: localhost
     port: 80
+
+    content_security_policy:
+      enabled: true
+      report_only: false
+      directives:
+        base_uri:
+        child_src:
+        connect_src:
+        default_src: "'self'"
+        font_src:
+        form_action:
+        frame_ancestors: "'self'"
+        frame_src: "'self' https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://content.googleapis.com https://content-compute.googleapis.com https://content-cloudbilling.googleapis.com https://content-cloudresourcemanager.googleapis.com"
+        img_src: "* data: blob:"
+        manifest_src:
+        media_src:
+        object_src: "'none'"
+        script_src: "'self' 'unsafe-eval' http://localhost:* https://www.google.com/recaptcha/ https://www.recaptcha.net/ https://www.gstatic.com/recaptcha/ https://apis.google.com"
+        style_src: "'self' 'unsafe-inline'"
+        worker_src: "'self' blob:"
+        report_uri:
 
     # When you run tests we clone and set up gitlab-shell
     # In order to set it up correctly you need to specify
