@@ -17,7 +17,7 @@ RUN mkdir -p ${GITLAB_SHELL_INSTALL_DIR} \
     && cd ${GITLAB_SHELL_INSTALL_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
     export PATH=${GOROOT}/bin:$PATH; \
-    cp config.yml.example config.yml; ./bin/install; ./bin/compile; rm -rf go_build" \
+    cp config.yml.example config.yml; make setup" \
     && rm -rf ${GITLAB_HOME}/repositories go_build
 
 # remove unused repositories directory created by gitlab-shell install
