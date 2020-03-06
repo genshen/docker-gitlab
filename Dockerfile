@@ -29,7 +29,7 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && printf "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    sudo nodejs yarn ca-certificates curl openssh-server logrotate zip unzip \
+    sudo nodejs gnupg2 yarn ca-certificates curl openssh-server logrotate zip unzip \
     libxml2 libpq5 libicu63 libre2-5  \
     postgresql-client-11  \
     && export PATH=/usr/local/ruby/bin:$PATH \
