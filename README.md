@@ -41,6 +41,7 @@ docker build --rm -t genshen/gitlab-ce .
 or you can build all images using all-in-one Dockerfile.
 ```
 docker build --file all-in-one/Dockerfile --rm -t genshen/gitlab-ce .
+docker build --file gitlab-pages/Dockerfile --rm -t genshen/gitlab-pages .
 ```
 
 ## Notes for configuration.

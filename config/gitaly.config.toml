@@ -86,6 +86,17 @@ dir = "/home/git/gitaly/ruby"
 [gitlab-shell]
 # The directory where gitlab-shell is installed
 dir = "/home/git/gitlab-shell"
+secret_file = "/home/git/gitlab-shell/.gitlab_shell_secret"
+custom_hooks_dir = "/home/git/custom_hooks"
+gitlab_url = "http://localhost:8080"
+
+[gitlab-shell.http-settings]
+# read_timeout = 300
+# user = someone
+# password = somepass
+# ca_file = /etc/ssl/cert.pem
+# ca_path = /etc/pki/tls/certs
+self_signed_cert = false
 
 # # You can adjust the concurrency of each RPC endpoint
 # [[concurrency]]

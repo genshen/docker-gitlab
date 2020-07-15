@@ -34,7 +34,7 @@ services:
 
   redis:
     restart: always
-    image: redis:latest
+    image: redis:6.0.5
     container_name: redis
     command:
     - --loglevel warning

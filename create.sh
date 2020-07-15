@@ -93,6 +93,7 @@ ln_f ${GITLAB_PAGES_DATA_DIR} ${GITLAB_DIR}/shared/pages
 
 ## init .secret
 rm -rf ${GITLAB_DIR}/.secret
+mkdir -p ${GITLAB_DATA_DIR}/.secret
 ln_file ${GITLAB_DATA_DIR}/.secret ${GITLAB_DIR}/.secret
 # remove gitlab shell and workhorse secrets
 rm -f ${GITLAB_DIR}/.gitlab_shell_secret ${GITLAB_DIR}/.gitlab_workhorse_secret

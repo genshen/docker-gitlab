@@ -1,9 +1,9 @@
-FROM golang:1.13.7-buster AS gitlab-pages-builder
+FROM golang:1.14.5-buster AS gitlab-pages-builder
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_PAGES_INSTALL_DIR="/usr/local/gitlab-pages" \
-     GITLAB_PAGES_VERSION_TAG="v1.12.0"
+     GITLAB_PAGES_VERSION_TAG="v1.18.0"
 ARG  GITLAB_PAGES_BUILD_DIR="/tmp/gitlab-pages-builder"
 ARG  GITLAB_PAGES_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-pages.git"
 
