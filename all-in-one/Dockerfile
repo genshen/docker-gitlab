@@ -7,7 +7,7 @@
 ## image of gitlab-base-builder
 ################################
 # https://github.com/docker-library/ruby/issues/228 / https://bugs.ruby-lang.org/issues/14754 3.8 not work for compiling ruby currently.
-FROM debian:buster-slim AS gitlab-base-packages-builder
+FROM debian:buster-20200908-slim AS gitlab-base-packages-builder
 # docker build --rm -t gitlab-builder  .
 # add denpendency libs and c/c++ compilers, git, ruby, go, node here.
 LABEL maintainer="genshenchu@gmail.com" \
@@ -259,7 +259,7 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
 ###################################################
 ## the final Docker image genshen/gitlab-ce:latest
 ###################################################
-FROM debian:buster-slim AS gitlab
+FROM debian:buster-20200908-slim AS gitlab
 
 LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab images, which includes necessary gitlab components: gitlab-server, gitaly, gitlab-shell, gitlab-workhorse."
@@ -289,7 +289,7 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs gnupg2 yarn ca-certificates curl openssh-server logrotate zip unzip \
     libxml2 libpq5 libicu63 libre2-5  \
-    postgresql-client-11  \
+    postgresql-client-12  \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \

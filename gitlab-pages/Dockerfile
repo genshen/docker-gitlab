@@ -24,7 +24,7 @@ RUN git clone -q -b ${GITLAB_PAGES_VERSION_TAG} --depth 1 ${GITLAB_PAGES_DOWNLOA
 
 
 ### docker build --rm -t genshen/gitlab-pages .
-FROM debian:buster-slim AS gitlab-pages
+FROM debian:buster-20200908-slim AS gitlab-pages
 
 LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab-pages images."
