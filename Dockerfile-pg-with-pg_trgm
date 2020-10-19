@@ -1,4 +1,4 @@
-FROM postgres:11-alpine
+FROM postgres:12-alpine
 
 RUN mkdir -p /docker-entrypoint-initdb.d \
     && echo -e "\
