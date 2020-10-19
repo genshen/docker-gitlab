@@ -13,11 +13,11 @@ FROM debian:buster-slim AS gitlab-base-packages-builder
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.6/ruby-2.6.6.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.14.5.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v12.18.2/node-v12.18.2-linux-x64.tar.xz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.15.3.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v12.19.0/node-v12.19.0-linux-x64.tar.xz"
 ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.35.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.26.2.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.28.0.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -131,7 +131,7 @@ FROM gitlab-base-builder AS gitlab-shell-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_SHELL_VERSION_TAG="v13.2.0"
+    GITLAB_SHELL_VERSION_TAG="v13.7.0"
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -158,7 +158,7 @@ FROM gitlab-base-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v8.31.2"
+     GITLAB_WORKHORSE_VERSION_TAG="v8.46.0"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_WORKHORSE_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-workhorse.git"
@@ -181,7 +181,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v13.0.10"
+     GITLAB_GITALY_VERSION_TAG="v13.4.4"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -213,7 +213,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v13.0.10
+    GITLAB_VERSION=v13.4.4
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"

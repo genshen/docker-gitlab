@@ -14,6 +14,11 @@ user: git
 # "http+unix://<urlquoted-path-to-socket>", e.g.
 # "http+unix://%2Fpath%2Fto%2Fsocket"
 gitlab_url: "http://localhost:8080"
+# gitlab_url: "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab-workhorse.socket"
+
+# When a http+unix:// is used in gitlab_url, this is the relative URL root to GitLab.
+# Not used if gitlab_url is http:// or https://.
+# gitlab_relative_url_root: "/"
 
 # See installation.md#using-https for additional HTTPS configuration details.
 http_settings:
@@ -26,6 +31,10 @@ http_settings:
 
 # File used as authorized_keys for gitlab user
 auth_file: "/home/git/.ssh/authorized_keys"
+
+# SSL certificate dir where custom certificates can be placed
+# https://golang.org/pkg/crypto/x509/
+# ssl_cert_dir: /opt/gitlab/embedded/ssl/certs/
 
 # File that contains the secret key for verifying access to GitLab.
 # Default is .gitlab_shell_secret in the gitlab-shell directory.

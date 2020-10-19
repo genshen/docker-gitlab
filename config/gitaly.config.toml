@@ -9,7 +9,7 @@ bin_dir = "/home/git/gitaly/bin"
 
 # # Optional: listen on a TCP socket. This is insecure (no authentication)
 # listen_addr = "localhost:9999"
-# tls_listen_addr = "localhost:8888
+# tls_listen_addr = "localhost:8888"
 
 # # Optional: export metrics via Prometheus
 # prometheus_listen_addr = "localhost:9236"
@@ -86,11 +86,19 @@ dir = "/home/git/gitaly/ruby"
 [gitlab-shell]
 # The directory where gitlab-shell is installed
 dir = "/home/git/gitlab-shell"
-secret_file = "/home/git/gitlab-shell/.gitlab_shell_secret"
-custom_hooks_dir = "/home/git/custom_hooks"
-gitlab_url = "http://localhost:8080"
 
-[gitlab-shell.http-settings]
+[hooks]
+custom_hooks_dir = "/home/git/custom_hooks"
+
+[gitlab]
+secret_file = "/home/git/gitlab-shell/.gitlab_shell_secret"
+# url = "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab-workhorse.socket"
+url = "http://localhost:8080"
+# Only needed if a UNIX socket is used in `url` and GitLab is configured to
+# use a relative path (e.g. /gitlab).
+# relative_url_root = '/'
+
+[gitlab.http-settings]
 # read_timeout = 300
 # user = someone
 # password = somepass
@@ -102,3 +110,11 @@ self_signed_cert = false
 # [[concurrency]]
 # rpc = "/gitaly.RepositoryService/GarbageCollect"
 # max_per_repo = 1
+
+# Daily maintenance designates time slots to run daily to optimize and maintain
+# enabled storages.
+# [daily_maintenance]
+# start_hour = 23
+# start_minute = 30
+# duration = "45m"
+# storages = ["default"]
