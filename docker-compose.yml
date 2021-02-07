@@ -12,7 +12,7 @@ services:
     - ":::2222:22"
     environment:
     - WORKHORSE_LISTEN_NETWORK=tcp  # or unix
-    - GITLAB_PAGES=ture
+    - GITLAB_PAGES=true
     volumes:
     - ./config:/etc/gitlab
     - ./data/gitlab:/gitlab/data
