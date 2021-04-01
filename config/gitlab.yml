@@ -317,6 +317,7 @@ production: &base
   ## Packages (maven repository, npm registry, etc...)
   packages:
     enabled: true
+    dpkg_deb_path: /usr/bin/dpkg-deb
     # The location where build packages are stored (default: shared/packages).
     # storage_path: shared/packages
     object_store:
@@ -394,6 +395,14 @@ production: &base
     # File that contains the shared secret key for verifying access for gitlab-pages.
     # Default is '.gitlab_pages_secret' relative to Rails.root (i.e. root of the GitLab app).
     # secret_file: /home/git/gitlab/.gitlab_pages_secret
+    object_store:
+      enabled: false
+      remote_directory: pages # The bucket name
+      connection:
+        provider: AWS
+        aws_access_key_id: AWS_ACCESS_KEY_ID
+        aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+        region: us-east-1
 
   ## Mattermost
   ## For enabling Add to Mattermost button
@@ -426,7 +435,13 @@ production: &base
       cron: "19 * * * *"
     # Remove expired build artifacts
     expire_build_artifacts_worker:
-      cron: "50 * * * *"
+      cron: "*/7 * * * *"
+    # Remove expired pipeline artifacts
+    ci_pipelines_expire_artifacts_worker:
+      cron: "*/23 * * * *"
+    # Remove files from object storage
+    ci_schedule_delete_objects_worker:
+      cron: "*/16 * * * *"
     # Stop expired environments
     environments_auto_stop_cron_worker:
       cron: "24 * * * *"
@@ -463,6 +478,10 @@ production: &base
   # GitLab EE only jobs. These jobs are automatically enabled for an EE
   # installation, and ignored for a CE installation.
   ee_cron_jobs:
+    # Schedule snapshots for all devops adoption segments
+    analytics_devops_adoption_create_all_snapshots_worker:
+      cron: 0 4 * * *
+
     # Snapshot active users statistics
     historical_data_worker:
       cron: "0 12 * * *"
@@ -603,6 +622,9 @@ production: &base
   ldap:
     enabled: false
     prevent_ldap_sign_in: false
+
+    # File location to read encrypted secrets from
+    # secret_file: /mnt/gitlab/ldap.yaml.enc # Default: shared/encrypted_settings/ldap.yaml.enc
 
     # This setting controls the number of seconds between LDAP permission checks
     # for each user. After this time has expired for a given user, their next
@@ -846,6 +868,12 @@ production: &base
     # (default: accept any service name in keytab file)
     # service_principal_name: HTTP/gitlab.example.com@EXAMPLE.COM
 
+    # Kerberos realms/domains that are allowed to automatically link LDAP identities.
+    # By default, GitLab accepts a realm that matches the domain derived from the
+    # LDAP `base` DN. For example, `ou=users,dc=example,dc=com` would allow users
+    # with a realm matching `example.com`.
+    # simple_ldap_linking_allowed_realms: ['example.com','kerberos.example.com']
+
     # Dedicated port: Git before 2.4 does not fall back to Basic authentication if Negotiate fails.
     # To support both Basic and Negotiate methods with older versions of Git, configure
     # nginx to proxy GitLab on an extra port (e.g. 8443) and uncomment the following lines
@@ -1005,9 +1033,37 @@ production: &base
     # cas3:
     #   session_duration: 28800
 
+  # FortiAuthenticator settings
+  forti_authenticator:
+    # Allow using FortiAuthenticator as OTP provider
+    enabled: false
+
+    # Host and port of FortiAuthenticator instance
+    # host: forti_authenticator.example.com
+    # port: 443
+
+    # Username for accessing FortiAuthenticator API
+    # username: john
+
+    # Access token for FortiAuthenticator API
+    # access_token: 123s3cr3t456
+
+  # FortiToken Cloud settings
+  forti_token_cloud:
+    # Allow using FortiToken Cloud as OTP provider
+    enabled: false
+
+    # Client ID and Secret to access FortiToken Cloud API
+    # client_id: 'YOUR_FORTI_TOKEN_CLOUD_CLIENT_ID'
+    # client_secret: 'YOUR_FORTI_TOKEN_CLOUD_CLIENT_SECRET'
+
   # Shared file storage settings
   shared:
     # path: /mnt/gitlab # Default: shared
+
+  # Encrypted Settings configuration
+  encrypted_settings:
+    # path: /mnt/gitlab/encrypted_settings  # Default: shared/encrypted_settings
 
   # Gitaly settings
   gitaly:
@@ -1154,10 +1210,7 @@ production: &base
   # yourself, and then update the values here.
   # https://docs.gitlab.com/ee/administration/monitoring/prometheus/
   prometheus:
-    # Do not use `enable` and `listen_address` in any new code, as they are deprecated. Use `server_address` instead.
-    # https://gitlab.com/gitlab-org/gitlab/-/issues/227111
-    # enable: true
-    # listen_address: 'localhost:9090'
+    # enabled: true
     # server_address: 'localhost:9090'
 
   ## Consul settings
@@ -1180,9 +1233,12 @@ production: &base
     ## Google analytics. Uncomment if you want it
     # google_analytics_id: '_your_tracking_id'
 
-    ## Piwik analytics.
-    # piwik_url: '_your_piwik_url'
-    # piwik_site_id: '_your_piwik_site_id'
+    ## Google tag manager
+    # google_tag_manager_id: '_your_tracking_id'
+
+    ## Matomo analytics.
+    # matomo_url: '_your_matomo_url'
+    # matomo_site_id: '_your_matomo_site_id'
 
   rack_attack:
     git_basic_auth:
@@ -1318,11 +1374,19 @@ test:
     # user: YOUR_USERNAME
   pages:
     path: tmp/tests/pages
+    object_store:
+      enabled: false
+      remote_directory: pages # The bucket name
+      connection:
+        provider: AWS
+        aws_access_key_id: AWS_ACCESS_KEY_ID
+        aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+        region: us-east-1
   repositories:
     storages:
       default:
         path: tmp/tests/repositories/
-        gitaly_address: unix:tmp/tests/gitaly/gitaly.socket
+        gitaly_address: unix:tmp/tests/gitaly/praefect.socket
 
   gitaly:
     client_path: tmp/tests/gitaly
@@ -1435,8 +1499,8 @@ test:
         group_base: 'ou=groups,dc=example,dc=com'
         admin_group: ''
   prometheus:
-    enable: true
-    listen_address: 'localhost:9090'
+    enabled: true
+    server_address: 'localhost:9090'
 
 staging:
   <<: *base

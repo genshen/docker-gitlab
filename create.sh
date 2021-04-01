@@ -132,7 +132,6 @@ ln_file ${GITLAB_CONFIG_DIR}/resque.yml  ${GITLAB_DIR}/config/resque.yml
 ln_file ${GITLAB_CONFIG_DIR}/secrets.yml  ${GITLAB_DIR}/config/secrets.yml
 ln_file ${GITLAB_CONFIG_DIR}/unicorn.rb  ${GITLAB_DIR}/config/unicorn.rb
 
-ln_file ${GITLAB_CONFIG_DIR}/initializers_rack_attack.rb  ${GITLAB_DIR}/config/initializers/rack_attack.rb
 
 #copy gitlab-shell config files
 ln_file ${GITLAB_CONFIG_DIR}/gitlab-shell.config.yml  ${GITLAB_SHELL_DIR}/config.yml

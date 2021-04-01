@@ -28,6 +28,8 @@ development:
   username: postgres
   password: "secure password"
   host: postgresql
+  variables:
+    statement_timeout: 15s
 
 #
 # Staging specific
@@ -51,3 +53,5 @@ test: &test
   password:
   host: postgresql
   prepared_statements: false
+  variables:
+    statement_timeout: 15s

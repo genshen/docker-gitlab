@@ -1,0 +1,69 @@
+# Example Praefect configuration file
+# # TCP address to listen on
+listen_addr = "127.0.0.1:2305"
+
+# # Secured TCP address to listen on.
+# tls_listen_addr = "127.0.0.1:2306"
+# # Path to the certificate and its key used for TLS listening address.
+# [tls]
+# certificate_path = '/home/git/cert.cert'
+# key_path = '/home/git/key.pem'
+
+# # Praefect can listen on a socket when placed on the same machine as all clients
+# socket_path = "/home/git/gitlab/tmp/sockets/private/praefect.socket"
+# # Optional: grace period before a praefect process is forcibly terminated (duration)
+# # Defaults to "1m"
+# graceful_stop_timeout = "30s"
+# # Optional: export metrics via Prometheus
+# prometheus_listen_addr = "127.0.01:10101"
+# # You can optionally configure Praefect to output JSON-formatted log messages to stdout
+# [logging]
+#   format = "json"
+# # Optional: Set log level to only log entries with that severity or above
+# # One of, in order: debug, info, warn, errror, fatal, panic
+# # Defaults to "info"
+#   level = "warn"
+# [sentry]
+#   sentry_environment = ""
+#   sentry_dsn = ""
+#
+#  Optional: authenticate Gitaly requests using a shared secret. This token works the same way as a gitaly token
+# [auth]
+#   token = 'abc123secret'
+#
+# # One or more Gitaly servers need to be configured to be managed. The names
+# of each server are used to link multiple nodes, or `gitaly_server`s together
+# as shard. listen_addr should be unique for all nodes.
+# Requires the protocol to be defined, e.g. tcp://host.tld:1234
+
+[replication]
+batch_size = 10 # configures the number of replication jobs to dequeue and lock in a batch
+
+[reconciliation]
+# Duration value specifying an interval at which to run the automatic repository reconciler.
+# Automatic reconciliation is disabled if set to 0. Example: "1m" for reconciliation every minute.
+scheduling_interval = 0 
+# Scheduling duration histogram buckets.
+histogram_buckets = [0.005, 0.01, 0.025, 0.05, 0.1, 0.25, 0.5, 1.0, 2.5, 5.0, 10.0] 
+
+[failover]
+enabled = true
+election_strategy = "sql" # Options: local, sql, per_repository. Defaults to 'sql'.
+
+[[virtual_storage]]
+name = 'praefect'
+
+[[virtual_storage.node]]
+  storage = "praefect-git-0"
+  address = "tcp://praefect-git-0.internal"
+  token = 'token1'
+
+[[virtual_storage.node]]
+  storage = "praefect-git-1"
+  address = "tcp://praefect-git-1.internal"
+  token = 'token2'
+
+[[virtual_storage.node]]
+  storage = "praefect-git-2"
+  address = "tcp://praefect-git-2.internal"
+  token = 'token3'
