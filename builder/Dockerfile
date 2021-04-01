@@ -32,7 +32,7 @@ RUN echo "installing ruby." \
     && mkdir /tmp/ruby-src \
     && tar -xzf /tmp/ruby.tar.gz -C /tmp/ruby-src --strip-components=1 \
     && cd /tmp/ruby-src \
-    && ./configure --disable-install-rdoc --prefix=/usr/local/ruby \
+    && ./configure --disable-install-rdoc --enable-shared --prefix=/usr/local/ruby \
     && make -j $(nproc) \
     && make install \
     && cd /tmp \
