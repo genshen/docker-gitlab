@@ -6,6 +6,8 @@ FROM debian:buster-20200908-slim AS gitlab
 LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab images, which includes necessary gitlab components: gitlab-server, gitaly, gitlab-shell, gitlab-workhorse."
 
+ARG LSB_RELEASE="buster"
+
 ENV GITLAB_USER="git" \
     GITLAB_HOME="/home/git" \
     GITLAB_CONFIG_DIR="/etc/gitlab" \
@@ -26,12 +28,13 @@ COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/git /usr/l
 # "sid main" is used for installing postgresql-client-11
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
-    && printf "\ndeb http://deb.debian.org/debian sid main" >> /etc/apt/sources.list \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    sudo nodejs gnupg2 yarn ca-certificates curl openssh-server logrotate zip unzip \
-    libxml2 libpq5 libicu63 libre2-5  \
-    postgresql-client-12  \
+    sudo nodejs gnupg2 yarn ca-certificates wget openssh-server logrotate zip unzip \
+    libxml2 libpq5 libicu63 libre2-5 \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt ${LSB_RELEASE}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y postgresql-client-12  \
     && export PATH=/usr/local/ruby/bin:$PATH \
     && mkdir -p /usr/local/bin /usr/local/include /usr/local/lib /usr/local/libexec /usr/local/share  \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
