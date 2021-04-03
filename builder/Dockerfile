@@ -9,7 +9,7 @@ ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.g
 ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.15.3.linux-amd64.tar.gz"
 ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v12.19.0/node-v12.19.0-linux-x64.tar.xz"
 ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.35.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://www.kernel.org/pub/software/scm/git/git-2.28.0.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.31.1.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
