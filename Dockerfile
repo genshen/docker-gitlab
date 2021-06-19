@@ -30,7 +30,7 @@ RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
-    sudo nodejs gnupg2 yarn ca-certificates wget openssh-server logrotate zip unzip \
+    sudo nodejs gnupg2 yarn ca-certificates wget openssh-server logrotate curl zip unzip \
     libxml2 libpq5 libicu63 libre2-5 libmagic-dev \
     && echo "deb http://apt.postgresql.org/pub/repos/apt ${LSB_RELEASE}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
