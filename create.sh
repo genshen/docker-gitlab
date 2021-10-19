@@ -131,7 +131,7 @@ ln_file ${GITLAB_CONFIG_DIR}/redis.shared_state.yml  ${GITLAB_DIR}/config/redis.
 ln_file ${GITLAB_CONFIG_DIR}/redis.trace_chunks.yml  ${GITLAB_DIR}/config/redis.trace_chunks.yml
 ln_file ${GITLAB_CONFIG_DIR}/resque.yml  ${GITLAB_DIR}/config/resque.yml
 ln_file ${GITLAB_CONFIG_DIR}/secrets.yml  ${GITLAB_DIR}/config/secrets.yml
-ln_file ${GITLAB_CONFIG_DIR}/unicorn.rb  ${GITLAB_DIR}/config/unicorn.rb
+ln_file ${GITLAB_CONFIG_DIR}/puma.rb  ${GITLAB_DIR}/config/puma.rb
 
 
 #copy gitlab-shell config files

@@ -154,15 +154,17 @@ init_db() {
 }
 
 start_gitlab_daemons() {
-    ## start unicorn(user:git)
-    echo "starting unicorn_rails"
-    start-stop-daemon --background --start --chdir ${GITLAB_DIR} --chuid ${GITLAB_USER} \
-        --exec ${BUNDLE} -- exec unicorn_rails -c ${GITLAB_DIR}/config/unicorn.rb -E ${RAILS_ENV}
+    ## start puma(user:git)
+    # echo "starting puma"
+    # start-stop-daemon --background --start --chdir ${GITLAB_DIR} --chuid ${GITLAB_USER} \
+    #     --exec ${BUNDLE} -- exec puma --config ${GITLAB_DIR}/config/puma.rb -E ${RAILS_ENV}
+    # echo "done"
+
+    # Start the web server
+    echo "starting web"
+    cd ${GITLAB_DIR}
+    sudo -u ${GITLAB_USER} -H RAILS_ENV=${RAILS_ENV} bin/web start
     echo "done"
-    #OR:    # Remove old unicorn socket if it exists
-    # rm -f "$rails_socket" 2>/dev/null
-        # Start the web server
-    # RAILS_ENV=$RAILS_ENV bin/web start
 
     ## start sidekiq(user:git)
     echo "starting gitlab sidekiq"
