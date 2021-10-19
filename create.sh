@@ -128,6 +128,7 @@ ln_file ${GITLAB_CONFIG_DIR}/database.yml  ${GITLAB_DIR}/config/database.yml
 ln_file ${GITLAB_CONFIG_DIR}/redis.cache.yml  ${GITLAB_DIR}/config/redis.cache.yml
 ln_file ${GITLAB_CONFIG_DIR}/redis.queues.yml  ${GITLAB_DIR}/config/redis.queues.yml
 ln_file ${GITLAB_CONFIG_DIR}/redis.shared_state.yml  ${GITLAB_DIR}/config/redis.shared_state.yml
+ln_file ${GITLAB_CONFIG_DIR}/redis.trace_chunks.yml  ${GITLAB_DIR}/config/redis.trace_chunks.yml
 ln_file ${GITLAB_CONFIG_DIR}/resque.yml  ${GITLAB_DIR}/config/resque.yml
 ln_file ${GITLAB_CONFIG_DIR}/secrets.yml  ${GITLAB_DIR}/config/secrets.yml
 ln_file ${GITLAB_CONFIG_DIR}/unicorn.rb  ${GITLAB_DIR}/config/unicorn.rb
