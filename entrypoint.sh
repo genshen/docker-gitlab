@@ -133,6 +133,7 @@ config_filesystem() {
     if [[ ! -f "${shell_secret}" ]]; then
         sudo -u ${GITLAB_USER} -H openssl rand -hex -out "${shell_secret}" 16
         chmod 600 "${shell_secret}"
+        sudo -u ${GITLAB_USER} -H ln -s "${shell_secret}" ${GITLAB_SHELL_DIR}/.gitlab_shell_secret
     fi
 
     local workhorse_secret="${GITLAB_WORKHORSE_WORK_DIR}/.gitlab_workhorse_secret"
