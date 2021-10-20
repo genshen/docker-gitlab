@@ -40,10 +40,7 @@ RUN echo "installing ruby." \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
-    && gem install bundler --version 1.17.3 --no-document
-
-# fixme: we use bundler version 1.17.3, not bundler 2, until "BUNDLED WITH" section in
-# https://gitlab.com/gitlab-org/gitaly/blob/master/ruby/Gemfile.lock is updated.
+    && gem install bundler --version 2.1.4 --no-document
 
 
 RUN echo "installing go." \
