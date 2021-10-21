@@ -13,8 +13,8 @@ user: git
 # only listen on a Unix domain socket. For Unix domain sockets use
 # "http+unix://<urlquoted-path-to-socket>", e.g.
 # "http+unix://%2Fpath%2Fto%2Fsocket"
-gitlab_url: "http://localhost:8080"
-# gitlab_url: "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab-workhorse.socket"
+# gitlab_url: "http://localhost:8181"
+gitlab_url: "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab.socket"
 
 # When a http+unix:// is used in gitlab_url, this is the relative URL root to GitLab.
 # Not used if gitlab_url is http:// or https://.

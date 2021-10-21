@@ -96,7 +96,8 @@ custom_hooks_dir = "/home/git/custom_hooks"
 [gitlab]
 secret_file = "/home/git/gitlab-shell/.gitlab_shell_secret"
 # url = "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab-workhorse.socket"
-url = "http://localhost:8080"
+url = "http+unix://%2Fhome%2Fgit%2Fgitlab%2Ftmp%2Fsockets%2Fgitlab.socket"
+# url = "http://localhost:8181"
 # Only needed if a UNIX socket is used in `url` and GitLab is configured to
 # use a relative path (e.g. /gitlab).
 # relative_url_root = '/'
