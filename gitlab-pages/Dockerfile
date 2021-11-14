@@ -30,7 +30,7 @@ LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab-pages images."
 
 ENV GITLAB_PAGES_USER="git" \
-    GITLAB_PAGES_HOME="/home/git/gitlab-pages"
+    GITLAB_PAGES_HOME="/home/git/gitlab"
 
 ENV GITLAB_PAGES_DATA_DIR="${GITLAB_PAGES_HOME}/pages" \
     GITLAB_PAGES_CONF_FILE="${GITLAB_PAGES_HOME}/pages.conf" \

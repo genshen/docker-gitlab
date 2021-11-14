@@ -2,7 +2,7 @@ version: "3"
 services:
   gitlab:
     restart: always
-    image: genshen/gitlab-ce:latest
+    image: genshen/gitlab-ce:14.0.11
     container_name: gitlab_ce
     depends_on:
     - redis
@@ -21,16 +21,16 @@ services:
 
   gitlab-pages:
     restart: always
-    image: genshen/gitlab-pages:latest
+    image: genshen/gitlab-pages:1.40.0
     container_name: gitlab-pages
-    command: ./bin/gitlab-pages -config ./pages.conf  # config file template is at gitlab-pages/page.conf.
+    command: ./bin/gitlab-pages -config /etc/gitlab/pages.conf  # config file template is at config/page.conf.
     # command: ./bin/gitlab-pages -listen-http ":8080" -pages-root  /home/git/gitlab-pages/pages -pages-domain  example.io
     ports:
     - ":::8090:8080"
     volumes:
-    - ./data/gitlab-pages/pages.conf:/home/git/gitlab-pages/pages.conf
-    #- ./data/gitlab-pages/gitlab-pages.log:/home/git/gitlab-pages/gitlab-pages.log
-    - ./data/gitlab-pages/shared:/home/git/gitlab-pages/pages:z
+    - ./config:/etc/gitlab
+#    - ./data/gitlab-pages/gitlab-pages.log:/home/git/gitlab/gitlab-pages.log
+    - ./data/gitlab-pages/shared:/home/git/gitlab/shared/pages:z
 
   redis:
     restart: always
