@@ -139,6 +139,7 @@ ln_file ${GITLAB_CONFIG_DIR}/gitlab-shell.config.yml  ${GITLAB_SHELL_DIR}/config
 
 # copy gitaly config files
 ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.toml  ${GITALY_DIR}/config.toml
+ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.praefect.toml  ${GITALY_DIR}/config.praefect.toml
 
 # gitlab pages secret.
 ln_file ${GITLAB_CONFIG_DIR}/pages_secret.txt  ${GITLAB_DIR}/.gitlab_pages_secret
