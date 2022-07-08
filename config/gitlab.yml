@@ -9,6 +9,8 @@
 # If you change this file in a merge request, please also create       #
 # a MR on https://gitlab.com/gitlab-org/omnibus-gitlab/merge_requests. #
 # For more details see https://gitlab.com/gitlab-org/omnibus-gitlab/blob/master/doc/settings/gitlab.yml.md #
+# Be sure to create a MR against the GDK configuration                 #
+# file (https://gitlab.com/gitlab-org/gitlab-development-kit/-/blob/main/support/templates/gitlab/config/gitlab.yml.erb) too. #
 ########################################################################
 #
 #
@@ -33,6 +35,10 @@ production: &base
     host: localhost
     port: 80 # Set to 443 if using HTTPS, see installation.md#using-https for additional HTTPS configuration details
     https: false # Set to true if using HTTPS, see installation.md#using-https for additional HTTPS configuration details
+
+    # Uncomment this line if you want to configure the Rails asset host for a CDN.
+    # cdn_host: localhost
+
     # The maximum time Puma can spend on the request. This needs to be smaller than the worker timeout.
     # Default is 95% of the worker timeout
     max_request_duration_seconds: 57
@@ -114,6 +120,8 @@ production: &base
       # ca_certs_file: /home/git/gitlab/.gitlab_smime_ca_certs
 
     # Email server smtp settings are in config/initializers/smtp_settings.rb.sample
+    # File location to read encrypted SMTP secrets from
+    # email_smtp_secret_file: /mnt/gitlab/smtp.yaml.enc # Default: shared/encrypted_settings/smtp.yaml.enc
 
     # default_can_create_group: false  # default: true
     # username_changing_enabled: false # default: true - User can change their username/namespace
@@ -170,12 +178,14 @@ production: &base
     ## Application settings cache expiry in seconds (default: 60)
     # application_settings_cache_seconds: 60
 
-    ## Print initial root password to stdout during initialization (default: true)
-    # display_initial_root_password: true
+    ## Print initial root password to stdout during initialization (default: false)
+    # WARNING: setting this to true means that the root password will be printed in
+    # plaintext. This can be a security risk.
+    # display_initial_root_password: false
 
   ## Reply by email
   # Allow users to comment on issues and merge requests by replying to notification emails.
-  # For documentation on how to set this up, see http://doc.gitlab.com/ce/administration/reply_by_email.html
+  # For documentation on how to set this up, see https://docs.gitlab.com/ee/administration/reply_by_email.html
   incoming_email:
     enabled: false
 
@@ -219,6 +229,26 @@ production: &base
     #   tenant_id: "YOUR-TENANT-ID"
     #   client_id: "YOUR-CLIENT-ID"
     #   client_secret: "YOUR-CLIENT-SECRET"
+
+    # How mailroom delivers email content to Rails. There are two methods at the moment:
+    # - sidekiq: mailroom pushes the email content to Sidekiq directly. This job
+    # is then picked up by Sidekiq.
+    # - webhook: mailroom triggers a HTTP POST request to Rails web server. The
+    # content is embedded into the request body.
+    # Default is sidekiq.
+    # delivery_method: sidekiq
+
+    # When the delivery method is webhook, those configs tell the url that
+    # mailroom can contact to. Note that the combined url must not end with "/".
+    # At the moment, the webhook delivery method doesn't support HTTP/HTTPs via
+    # UNIX socket.
+    # gitlab_url: "http://gitlab.example"
+
+    # When the delivery method is webhook, this config is the file that
+    # contains the shared secret key for verifying access for mailroom's
+    # incoming_email.
+    # Default is '.gitlab_mailroom_secret' relative to Rails.root (i.e. root of the GitLab app).
+    # secret_file: /home/git/gitlab/.gitlab_mailroom_secret
 
   ## Consolidated object store config
   ## This will only take effect if the object_store sections are not defined
@@ -390,6 +420,23 @@ production: &base
         # aws_signature_version: 4 # For creation of signed URLs. Set to 2 if provider does not support v4.
         # path_style: true # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
 
+  ## CI Secure Files
+  ci_secure_files:
+    enabled: true
+    # storage_path: shared/ci_secure_files
+    object_store:
+      enabled: false
+      remote_directory: ci-secure-files # The bucket name
+      connection:
+        provider: AWS
+        aws_access_key_id: AWS_ACCESS_KEY_ID
+        aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+        region: us-east-1
+        # host: 'localhost' # default: s3.amazonaws.com
+        # endpoint: 'http://127.0.0.1:9000' # default: nil
+        # aws_signature_version: 4 # For creation of signed URLs. Set to 2 if provider does not support v4.
+        # path_style: true # Use 'host/bucket_name/object' instead of 'bucket_name.host/object'
+
   ## GitLab Pages
   pages:
     enabled: false
@@ -470,6 +517,9 @@ production: &base
     # Stop expired environments
     environments_auto_stop_cron_worker:
       cron: "24 * * * *"
+    # Delete stopped environments
+    environments_auto_delete_cron_worker:
+      cron: "34 * * * *"
     # Periodically run 'git fsck' on all repositories. If started more than
     # once per hour you will have concurrent 'git fsck' jobs.
     repository_check_worker:
@@ -828,6 +878,11 @@ production: &base
         #
         sync_ssh_keys: false
 
+        # Retry ldap search connection if got empty results with specified response code(s)
+        #
+        #   Ex. [80]
+        # retry_empty_result_with_codes: []
+
         # LDAP attributes that GitLab will use to create an account for the LDAP user.
         # The specified attribute can either be the attribute name as a string (e.g. 'mail'),
         # or an array of attribute names to try in order (e.g. ['mail', 'email']).
@@ -945,6 +1000,11 @@ production: &base
     # (default: false)
     auto_link_saml_user: false
 
+    # CAUTION!
+    # Allows larger SAML messages to be received. Numeric value in bytes (default: 250000)
+    # Too high limits exposes instance to decompression DDoS attack type.
+    saml_message_max_byte_size: 250000
+
     # Allow users with existing accounts to sign in and auto link their account via OmniAuth
     # login, without having to do a manual login first and manually add OmniAuth. Links on email.
     # Define the allowed providers using an array, e.g. ["saml", "twitter"], or as true/false to
@@ -975,6 +1035,9 @@ production: &base
     # arguments, followed by optional 'args' which can be either a hash or an array.
     # Documentation for this is available at http://doc.gitlab.com/ce/integration/omniauth.html
     providers:
+      # - { name: 'alicloud',
+      #     app_id: 'YOUR_APP_ID',
+      #     app_secret: 'YOUR_APP_SECRET' }
       # See omniauth-cas3 for more configuration details
       # - { name: 'cas3',
       #     label: 'cas3',
@@ -1001,6 +1064,9 @@ production: &base
       #     verify_ssl: true,
       #     args: { scope: 'user:email' } }
       # - { name: 'bitbucket',
+      #     app_id: 'YOUR_APP_ID',
+      #     app_secret: 'YOUR_APP_SECRET' }
+      # - { name: 'dingtalk',
       #     app_id: 'YOUR_APP_ID',
       #     app_secret: 'YOUR_APP_SECRET' }
       # - { name: 'gitlab',
@@ -1116,6 +1182,7 @@ production: &base
   ## Backup settings
   backup:
     path: "tmp/backups"   # Relative paths are relative to Rails.root (default: tmp/backups/)
+    gitaly_backup_path: /home/git/gitaly/bin/gitaly-backup # Path of the gitaly-backup binary (default: searches $PATH)
     # archive_permissions: 0640 # Permissions for the resulting backup.tar file (default: 0600)
     # keep_time: 604800   # default: 0 (forever) (in seconds)
     # pg_schema: public     # default: nil, it means that all schemas will be backed up
@@ -1131,14 +1198,22 @@ production: &base
     #   # Use multipart uploads when file size reaches 100MB, see
     #   #  http://docs.aws.amazon.com/AmazonS3/latest/dev/uploadobjusingmpu.html
     #   multipart_chunk_size: 104857600
-    #   # Turns on AWS Server-Side Encryption with Amazon S3-Managed Keys for backups, this is optional
-    #   # encryption: 'AES256'
-    #   # Turns on AWS Server-Side Encryption with Amazon Customer-Provided Encryption Keys for backups, this is optional
-    #   #   This should be set to the 256-bit encryption key for Amazon S3 to use to encrypt or decrypt your data.
-    #   #   'encryption' must also be set in order for this to have any effect.
-    #   # encryption_key: '<key>'
-    #   # Specifies Amazon S3 storage class to use for backups, this is optional
+    #   # Specifies Amazon S3 storage class to use for backups (optional)
     #   # storage_class: 'STANDARD'
+    #   # Turns on AWS Server-Side Encryption with Amazon Customer-Provided Encryption Keys for backups, this is optional
+    #   #   'encryption' must be set in order for this to have any effect.
+    #   #   'encryption_key' should be set to the 256-bit encryption key for Amazon S3 to use to encrypt or decrypt your data.
+    #   # encryption: 'AES256'
+    #   # encryption_key: '<key>'
+    #   #
+    #   # Turns on AWS Server-Side Encryption with Amazon S3-Managed keys (optional)
+    #   # https://docs.aws.amazon.com/AmazonS3/latest/userguide/serv-side-encryption.html
+    #   # For SSE-S3, set 'server_side_encryption' to 'AES256'.
+    #   # For SS3-KMS, set 'server_side_encryption' to 'aws:kms'. Set
+    #   # 'server_side_encryption_kms_key_id' to the ARN of customer master key.
+    #   # storage_options:
+    #   #   server_side_encryption: 'aws:kms'
+    #   #   server_side_encryption_kms_key_id: 'arn:aws:kms:YOUR-KEY-ID-HERE'
 
   ## Pseudonymizer exporter
   pseudonymizer:
@@ -1190,6 +1265,9 @@ production: &base
     # The URL to the internal KAS API (used by the GitLab backend)
     # internal_url: grpc://localhost:8153
 
+    # The URL to the Kubernetes API proxy (used by GitLab users)
+    # external_k8s_proxy_url: https://localhost:8154 # default: nil
+
   ## GitLab Elasticsearch settings
   elasticsearch:
     indexer_path: /home/git/gitlab-elasticsearch-indexer/
@@ -1219,6 +1297,12 @@ production: &base
 
     # Sidekiq exporter is webserver built in to Sidekiq to expose Prometheus metrics
     sidekiq_exporter:
+    #  enabled: true
+    #  log_enabled: false
+    #  address: localhost
+    #  port: 8082
+
+    sidekiq_health_checks:
     #  enabled: true
     #  log_enabled: false
     #  address: localhost
@@ -1263,6 +1347,12 @@ production: &base
 
     ## Google tag manager
     # google_tag_manager_id: '_your_tracking_id'
+
+    ## OneTrust
+    # one_trust_id: '_your_one_trust_id'
+
+    ## Bizible.
+    # bizible: true
 
     ## Matomo analytics.
     # matomo_url: '_your_matomo_url'
@@ -1376,6 +1466,18 @@ test:
         aws_secret_access_key: AWS_SECRET_ACCESS_KEY
         region: us-east-1
 
+  ci_secure_files:
+    enabled: true
+    storage_path: tmp/tests/ci_secure_files
+    object_store:
+      enabled: false
+      remote_directory: ci-secure-files
+      connection:
+        provider: AWS # Only AWS supported at the moment
+        aws_access_key_id: AWS_ACCESS_KEY_ID
+        aws_secret_access_key: AWS_SECRET_ACCESS_KEY
+        region: us-east-1
+
   gitlab:
     host: localhost
     port: 80
@@ -1431,6 +1533,7 @@ test:
     secret_file: tmp/gitlab_workhorse_test_secret
   backup:
     path: tmp/tests/backups
+    gitaly_backup_path: tmp/tests/gitaly/_build/bin/gitaly-backup
   pseudonymizer:
     manifest: config/pseudonymizer.yml
     upload:
@@ -1462,6 +1565,9 @@ test:
     external_providers: []
 
     providers:
+      - { name: 'alicloud',
+          app_id: 'YOUR_APP_ID',
+          app_secret: 'YOUR_APP_SECRET' }
       - { name: 'cas3',
           label: 'cas3',
           args: { url: 'https://sso.example.com',
@@ -1476,6 +1582,9 @@ test:
           verify_ssl: false,
           args: { scope: 'user:email' } }
       - { name: 'bitbucket',
+          app_id: 'YOUR_APP_ID',
+          app_secret: 'YOUR_APP_SECRET' }
+      - { name: 'dingtalk',
           app_id: 'YOUR_APP_ID',
           app_secret: 'YOUR_APP_SECRET' }
       - { name: 'gitlab',

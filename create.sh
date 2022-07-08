@@ -125,6 +125,7 @@ rm -rf /etc/ssh/ssh_host_*_key /etc/ssh/ssh_host_*_key.pub
 # copy gitlab config files
 ln_file ${GITLAB_CONFIG_DIR}/gitlab.yml  ${GITLAB_DIR}/config/gitlab.yml
 ln_file ${GITLAB_CONFIG_DIR}/database.yml  ${GITLAB_DIR}/config/database.yml
+ln_file ${GITLAB_CONFIG_DIR}/redis.cable.yml  ${GITLAB_DIR}/config/redis.cable.yml
 ln_file ${GITLAB_CONFIG_DIR}/redis.cache.yml  ${GITLAB_DIR}/config/redis.cache.yml
 ln_file ${GITLAB_CONFIG_DIR}/redis.queues.yml  ${GITLAB_DIR}/config/redis.queues.yml
 ln_file ${GITLAB_CONFIG_DIR}/redis.shared_state.yml  ${GITLAB_DIR}/config/redis.shared_state.yml

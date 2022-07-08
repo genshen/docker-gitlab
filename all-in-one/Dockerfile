@@ -128,7 +128,7 @@ FROM gitlab-base-builder AS gitlab-shell-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_SHELL_VERSION_TAG="v13.19.1"
+    GITLAB_SHELL_VERSION_TAG="v13.25.1"
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -155,7 +155,7 @@ FROM gitlab-base-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v14.0.11"
+     GITLAB_WORKHORSE_VERSION_TAG="v14.10.5"
 ARG  GITLAB_WORKHORSE_SOURCE_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_WORKHORSE_SOURCE_DIR}/workhorse"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
@@ -179,7 +179,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v14.0.11"
+     GITLAB_GITALY_VERSION_TAG="v14.10.5"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -211,7 +211,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v14.0.11
+    GITLAB_VERSION=v14.10.5
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
