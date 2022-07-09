@@ -145,6 +145,17 @@ ln_file ${GITLAB_CONFIG_DIR}/gitaly.config.praefect.toml  ${GITALY_DIR}/config.p
 # gitlab pages secret.
 ln_file ${GITLAB_CONFIG_DIR}/pages_secret.txt  ${GITLAB_DIR}/.gitlab_pages_secret
 
+## Patch for gitaly to set bundle path
+bundle_conf=${GITALY_DIR}/ruby/.bundle/config
+if [ ! -f ${bundle_conf} ]
+then
+    mkdir -p ${GITALY_DIR}/ruby/.bundle
+    cat > ${bundle_conf} <<EOF
+---
+BUNDLE_DEPLOYMENT: "true"
+BUNDLE_PATH: "vendor/bundle"
+EOF
+fi
 
 ## Install Init Script
 # cp ${GITLAB_DIR}/lib/support/init.d/gitlab /etc/init.d/gitlab

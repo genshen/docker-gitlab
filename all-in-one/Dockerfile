@@ -193,6 +193,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
     && sudo -u ${GITLAB_USER} -H sh -c " \
     cd ${GITLAB_GITALY_BUILD_DIR}; \
     export PATH=${GOROOT}/bin:$PATH; \
+    export BUNDLE_PATH=vendor/bundle; \
     make install PREFIX=${GITLAB_GITALY_INSTALL_DIR};" \
     && cp -a ${GITLAB_GITALY_BUILD_DIR}/ruby ${GITLAB_GITALY_INSTALL_DIR} \
     && rm -rf ${GITLAB_GITALY_INSTALL_DIR}/ruby/vendor/bundle/ruby/**/cache \
