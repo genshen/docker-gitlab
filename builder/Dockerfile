@@ -7,9 +7,9 @@ LABEL maintainer="genshenchu@gmail.com" \
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.gz"
 ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.17.2.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v14.18.1/node-v14.18.1-linux-x64.tar.xz"
-ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.37.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.33.1.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v16.16.0/node-v16.16.0-linux-x64.tar.xz"
+ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.40/pcre2-10.40.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.37.0.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -40,7 +40,7 @@ RUN echo "installing ruby." \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
-    && gem install bundler --version 2.1.4 --no-document
+    && gem install bundler --version 2.3.6 --no-document
 
 
 RUN echo "installing go." \

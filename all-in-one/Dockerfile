@@ -15,9 +15,9 @@ LABEL maintainer="genshenchu@gmail.com" \
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.gz"
 ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.17.2.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v14.18.1/node-v14.18.1-linux-x64.tar.xz"
-ARG LIBPCRE_DOWNLOAD_URL="https://ftp.pcre.org/pub/pcre/pcre2-10.37.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.33.1.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v16.16.0/node-v16.16.0-linux-x64.tar.xz"
+ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.40/pcre2-10.40.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.37.0.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -48,7 +48,7 @@ RUN echo "installing ruby." \
     && ln -s /usr/local/ruby/bin/* /usr/local/bin/ \
     && ln -s /usr/local/ruby/include/* /usr/local/include/ \
     && ln -s /usr/local/ruby/lib/* /usr/local/lib/ \
-    && gem install bundler --version 2.1.4 --no-document
+    && gem install bundler --version 2.3.6 --no-document
 
 
 RUN echo "installing go." \
@@ -128,7 +128,7 @@ FROM gitlab-base-builder AS gitlab-shell-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_SHELL_VERSION_TAG="v13.19.1"
+    GITLAB_SHELL_VERSION_TAG="v13.25.1"
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -155,7 +155,7 @@ FROM gitlab-base-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v14.0.11"
+     GITLAB_WORKHORSE_VERSION_TAG="v14.10.5"
 ARG  GITLAB_WORKHORSE_SOURCE_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_WORKHORSE_SOURCE_DIR}/workhorse"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
@@ -179,7 +179,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v14.0.11"
+     GITLAB_GITALY_VERSION_TAG="v14.10.5"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -193,6 +193,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
     && sudo -u ${GITLAB_USER} -H sh -c " \
     cd ${GITLAB_GITALY_BUILD_DIR}; \
     export PATH=${GOROOT}/bin:$PATH; \
+    export BUNDLE_PATH=vendor/bundle; \
     make install PREFIX=${GITLAB_GITALY_INSTALL_DIR};" \
     && cp -a ${GITLAB_GITALY_BUILD_DIR}/ruby ${GITLAB_GITALY_INSTALL_DIR} \
     && rm -rf ${GITLAB_GITALY_INSTALL_DIR}/ruby/vendor/bundle/ruby/**/cache \
@@ -211,7 +212,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v14.0.11
+    GITLAB_VERSION=v14.10.5
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"

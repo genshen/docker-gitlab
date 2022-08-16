@@ -2,7 +2,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v14.0.11"
+     GITLAB_GITALY_VERSION_TAG="v14.10.5"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -16,6 +16,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
     && sudo -u ${GITLAB_USER} -H sh -c " \
     cd ${GITLAB_GITALY_BUILD_DIR}; \
     export PATH=${GOROOT}/bin:$PATH; \
+    export BUNDLE_PATH=vendor/bundle; \
     make install PREFIX=${GITLAB_GITALY_INSTALL_DIR};" \
     && cp -a ${GITLAB_GITALY_BUILD_DIR}/ruby ${GITLAB_GITALY_INSTALL_DIR} \
     && rm -rf ${GITLAB_GITALY_INSTALL_DIR}/ruby/vendor/bundle/ruby/**/cache \
