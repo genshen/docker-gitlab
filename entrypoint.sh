@@ -157,7 +157,8 @@ start_gitlab_daemons() {
     ## start puma(user:git)
     # echo "starting puma"
     # start-stop-daemon --background --start --chdir ${GITLAB_DIR} --chuid ${GITLAB_USER} \
-    #     --exec ${BUNDLE} -- exec puma --config ${GITLAB_DIR}/config/puma.rb -E ${RAILS_ENV}
+    #     --exec ${BUNDLE} -- exec puma --config ${GITLAB_DIR}/config/puma.rb -E ${RAILS_ENV} \
+    #     --pidfile ${GITLAB_DIR}/tmp/pids/puma.pid
     # echo "done"
 
     # Start the web server

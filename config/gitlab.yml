@@ -183,6 +183,22 @@ production: &base
     # plaintext. This can be a security risk.
     # display_initial_root_password: false
 
+  # Allows delivery of emails using Microsoft Graph API with OAuth 2.0 client credentials flow.
+  microsoft_graph_mailer:
+    enabled: false
+    # The unique identifier for the user. To use Microsoft Graph on behalf of the user.
+    # user_id: "YOUR-USER-ID"
+    # The directory tenant the application plans to operate against, in GUID or domain-name format.
+    # tenant: "YOUR-TENANT-ID"
+    # The application ID that's assigned to your app. You can find this information in the portal where you registered your app.
+    # client_id: "YOUR-CLIENT-ID"
+    # The client secret that you generated for your app in the app registration portal.
+    # client_secret: "YOUR-CLIENT-SECRET-ID"
+    # Defaults to "https://login.microsoftonline.com".
+    # azure_ad_endpoint:
+    # Defaults to "https://graph.microsoft.com".
+    # graph_endpoint:
+
   ## Reply by email
   # Allow users to comment on issues and merge requests by replying to notification emails.
   # For documentation on how to set this up, see https://docs.gitlab.com/ee/administration/reply_by_email.html
@@ -220,7 +236,12 @@ production: &base
     #
     # log_path: log/mail_room_json.log
 
-    # Whether to expunge (permanently remove) messages from the mailbox when they are deleted after delivery
+    # If you are using Microsoft Graph instead of IMAP, set this to false to retain
+    # messages in the inbox since deleted messages are auto-expunged after some time.
+    delete_after_delivery: true
+
+    # Whether to expunge (permanently remove) messages from the mailbox when they are marked as deleted after delivery
+    # Only applies to IMAP. Microsoft Graph will auto-expunge any deleted messages.
     expunge_deleted: false
 
     # For Microsoft Graph support
@@ -288,7 +309,6 @@ production: &base
     # object_store:
     #   enabled: false
     #   remote_directory: artifacts # The bucket name
-    #   background_upload: false # Temporary option to limit automatic upload (Default: true)
     #   proxy_download: false # Passthrough all downloads via GitLab instead of using Redirects to Object Storage
     #   connection:
     #     provider: AWS # Only AWS supported at the moment
@@ -308,7 +328,6 @@ production: &base
     # object_store:
     #   enabled: false
     #   remote_directory: external-diffs
-    #   background_upload: false
     #   proxy_download: false
     #   connection:
     #     provider: AWS
@@ -324,8 +343,6 @@ production: &base
     object_store:
       enabled: false
       remote_directory: lfs-objects # Bucket name
-      # direct_upload: false # Use Object Storage directly for uploads instead of background uploads if enabled (Default: false)
-      # background_upload: false # Temporary option to limit automatic upload (Default: true)
       # proxy_download: false # Passthrough all downloads via GitLab instead of using Redirects to Object Storage
       connection:
         provider: AWS
@@ -346,8 +363,6 @@ production: &base
     object_store:
       enabled: false
       remote_directory: uploads # Bucket name
-      # direct_upload: false # Use Object Storage directly for uploads instead of background uploads if enabled (Default: false)
-      # background_upload: false # Temporary option to limit automatic upload (Default: true)
       # proxy_download: false # Passthrough all downloads via GitLab instead of using Redirects to Object Storage
       connection:
         provider: AWS
@@ -368,8 +383,6 @@ production: &base
     object_store:
       enabled: false
       remote_directory: packages # The bucket name
-      # direct_upload: false # Use Object Storage directly for uploads instead of background uploads if enabled (Default: false)
-      # background_upload: false # Temporary option to limit automatic upload (Default: true)
       # proxy_download: false # Passthrough all downloads via GitLab instead of using Redirects to Object Storage
       connection:
         provider: AWS
@@ -389,8 +402,6 @@ production: &base
     object_store:
       enabled: false
       remote_directory: dependency_proxy # The bucket name
-      # direct_upload: false # Use Object Storage directly for uploads instead of background uploads if enabled (Default: false)
-      # background_upload: false # Temporary option to limit automatic upload (Default: true)
       # proxy_download: false # Passthrough all downloads via GitLab instead of using Redirects to Object Storage
       connection:
         provider: AWS
@@ -476,6 +487,14 @@ production: &base
     enabled: false
     host: 'https://mattermost.example.com'
 
+  ## Jira connect
+  ## To switch to a Jira connect development environment
+  jira_connect:
+    # atlassian_js_url: 'http://localhost:9292/atlassian.js'
+    # enable_public_keys_storage: true
+    # enforce_jira_base_url_https: false
+    # additional_iframe_ancestors: ['localhost:*']
+
   ## Gravatar
   ## If using gravatar.com, there's nothing to change here. For Libravatar
   ## you'll need to provide the custom URLs. For more information,
@@ -499,6 +518,11 @@ production: &base
   # Periodically executed jobs, to self-heal GitLab, do external synchronizations, etc.
   # Please read here for more information: https://github.com/ondrejbartas/sidekiq-cron#adding-cron-job
   cron_jobs:
+    # Interval, in seconds, for each Sidekiq process to check for scheduled cron jobs that need to be enqueued. If not
+    # set, the interval scales dynamically with the number of Sidekiq processes. If set to 0, disable polling for cron
+    # jobs entirely.
+    # poll_interval: 30
+
     # Flag stuck CI jobs as failed
     stuck_ci_jobs_worker:
       cron: "0 * * * *"
@@ -550,6 +574,10 @@ production: &base
     ci_platform_metrics_update_cron_worker:
       cron: "47 9 * * *"
 
+    # Periodically update ci_runner_versions table with up-to-date versions and status.
+    ci_runner_versions_reconciliation_worker:
+      cron: "@daily"
+
   # GitLab EE only jobs. These jobs are automatically enabled for an EE
   # installation, and ignored for a CE installation.
   ee_cron_jobs:
@@ -592,19 +620,10 @@ production: &base
     geo_secondary_registry_consistency_worker:
       cron: "* * * * *"
 
-    # GitLab Geo file download dispatch worker
-    # NOTE: This will only take effect if Geo is enabled (secondary nodes only)
-    geo_file_download_dispatch_worker:
-      cron: "*/1 * * * *"
-
     # GitLab Geo registry sync worker (for backfilling)
     # NOTE: This will only take effect if Geo is enabled (secondary nodes only)
     geo_registry_sync_worker:
       cron: "*/1 * * * *"
-
-    # Export pseudonymized data in CSV format for analysis
-    pseudonymizer_worker:
-      cron: "0 * * * *"
 
     # Elasticsearch bulk updater for incremental updates.
     # NOTE: This will only take effect if elasticsearch is enabled.
@@ -620,6 +639,10 @@ production: &base
     # NOTE: This will only take effect if elasticsearch is enabled.
     elastic_index_initial_bulk_cron_worker:
       cron: "*/10 * * * *"
+
+    # Periodically prune stale runners from namespaces having opted-in.
+    ci_runners_stale_group_runners_prune_worker_cron:
+      cron: "30 * * * *"
 
   registry:
     # enabled: true
@@ -676,12 +699,6 @@ production: &base
 
   gitlab_ci:
     # Default project notifications settings:
-    #
-    # Send emails only on broken builds (default: true)
-    # all_broken_builds: true
-    #
-    # Add pusher to recipients list (default: false)
-    # add_pusher: true
 
     # The location where build traces are stored (default: builds/). Relative paths are relative to Rails.root
     # builds_path: builds/
@@ -843,7 +860,7 @@ production: &base
 
         # Filter LDAP users
         #
-        #   Format: RFC 4515 https://tools.ietf.org/search/rfc4515
+        #   Format: RFC 4515 https://www.rfc-editor.org/rfc/rfc4515
         #   Ex. (employeeType=developer)
         #
         #   Note: GitLab does not support omniauth-ldap's custom filter syntax.
@@ -1046,7 +1063,7 @@ production: &base
       #             disable_ssl_verification: false,
       #             login_url: '/cas/login',
       #             service_validate_url: '/cas/p3/serviceValidate',
-      #             logout_url: '/cas/logout'} }
+      #             logout_url: '/cas/logout' } }
       # - { name: 'authentiq',
       #     # for client credentials (client ID and secret), go to https://www.authentiq.com/developers
       #     app_id: 'YOUR_CLIENT_ID',
@@ -1187,7 +1204,7 @@ production: &base
     # keep_time: 604800   # default: 0 (forever) (in seconds)
     # pg_schema: public     # default: nil, it means that all schemas will be backed up
     # upload:
-    #   # Fog storage connection settings, see http://fog.io/storage/ .
+    #   # Fog storage connection settings, see https://fog.io/storage/ .
     #   connection:
     #     provider: AWS
     #     region: eu-west-1
@@ -1214,20 +1231,6 @@ production: &base
     #   # storage_options:
     #   #   server_side_encryption: 'aws:kms'
     #   #   server_side_encryption_kms_key_id: 'arn:aws:kms:YOUR-KEY-ID-HERE'
-
-  ## Pseudonymizer exporter
-  pseudonymizer:
-    # Tables manifest that specifies the fields to extract and pseudonymize.
-    manifest: config/pseudonymizer.yml
-    upload:
-      remote_directory: 'gitlab-elt'
-      # Fog storage connection settings, see http://fog.io/storage/ .
-      connection:
-      #   provider: AWS
-      #   region: eu-west-1
-      #   aws_access_key_id: AKIAKIAKI
-      #   aws_secret_access_key: 'secret123'
-      #   # The remote 'directory' to store the CSV files. For S3, this would be the bucket name.
 
   ## GitLab Shell settings
   gitlab_shell:
@@ -1268,6 +1271,11 @@ production: &base
     # The URL to the Kubernetes API proxy (used by GitLab users)
     # external_k8s_proxy_url: https://localhost:8154 # default: nil
 
+  suggested_reviewers:
+    # File that contains the secret key for verifying access to GitLab internal API for Suggested Reviewers.
+    # Default is '.gitlab_suggested_reviewers_secret' relative to Rails.root (i.e. root of the GitLab app).
+    # secret_file: /home/git/gitlab/.gitlab_suggested_reviewers_secret
+
   ## GitLab Elasticsearch settings
   elasticsearch:
     indexer_path: /home/git/gitlab-elasticsearch-indexer/
@@ -1295,25 +1303,29 @@ production: &base
     ip_whitelist:
       - 127.0.0.0/8
 
-    # Sidekiq exporter is webserver built in to Sidekiq to expose Prometheus metrics
+    # Sidekiq exporter is a dedicated Prometheus metrics server optionally running alongside Sidekiq.
     sidekiq_exporter:
     #  enabled: true
     #  log_enabled: false
     #  address: localhost
     #  port: 8082
+    #  tls_enabled: false
+    #  tls_cert_path: /path/to/cert.pem
+    #  tls_key_path: /path/to/key.pem
 
     sidekiq_health_checks:
     #  enabled: true
-    #  log_enabled: false
     #  address: localhost
-    #  port: 8082
+    #  port: 8092
 
-    # Web exporter is a dedicated Rack server running alongside Puma to expose Prometheus metrics
-    # It runs alongside the `/metrics` endpoints to ease the publish of metrics
+    # Web exporter is a dedicated Prometheus metrics server optionally running alongside Puma.
     web_exporter:
     #  enabled: true
     #  address: localhost
     #  port: 8083
+    #  tls_enabled: false
+    #  tls_cert_path: /path/to/cert.pem
+    #  tls_key_path: /path/to/key.pem
 
   ## Prometheus settings
   # Do not modify these settings here. They should be modified in /etc/gitlab/gitlab.rb
@@ -1324,6 +1336,9 @@ production: &base
   prometheus:
     # enabled: true
     # server_address: 'localhost:9090'
+  snowplow_micro:
+    enabled: true
+    address: '127.0.0.1:9091'
 
   ## Consul settings
   consul:
@@ -1438,7 +1453,6 @@ test:
     object_store:
       enabled: false
       remote_directory: artifacts # The bucket name
-      background_upload: false
       connection:
         provider: AWS # Only AWS supported at the moment
         aws_access_key_id: AWS_ACCESS_KEY_ID
@@ -1534,17 +1548,6 @@ test:
   backup:
     path: tmp/tests/backups
     gitaly_backup_path: tmp/tests/gitaly/_build/bin/gitaly-backup
-  pseudonymizer:
-    manifest: config/pseudonymizer.yml
-    upload:
-      # The remote 'directory' to store the CSV files. For S3, this would be the bucket name.
-      remote_directory: gitlab-elt.test
-      # Fog storage connection settings, see http://fog.io/storage/
-      connection:
-        provider: AWS # Only AWS supported at the moment
-        aws_access_key_id: AWS_ACCESS_KEY_ID
-        aws_secret_access_key: AWS_SECRET_ACCESS_KEY
-        region: us-east-1
   gitlab_shell:
     path: tmp/tests/gitlab-shell/
     authorized_keys_file: tmp/tests/authorized_keys
@@ -1574,7 +1577,7 @@ test:
                   disable_ssl_verification: false,
                   login_url: '/cas/login',
                   service_validate_url: '/cas/p3/serviceValidate',
-                  logout_url: '/cas/logout'} }
+                  logout_url: '/cas/logout' } }
       - { name: 'github',
           app_id: 'YOUR_APP_ID',
           app_secret: 'YOUR_APP_SECRET',
