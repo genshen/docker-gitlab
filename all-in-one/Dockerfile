@@ -230,6 +230,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y li
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
+# fix building error: "ERROR: This installation of GitLab uses unsupported database names in 'config/database.yml': geo. The only supported ones are main, ci.ERROR: This installation of GitLab uses unsupported database names in 'config/database.yml': geo. The only supported ones are main, ci."
+# fixme: can be removed if the bug is fixed.
+COPY --chown=git:git config/database.yml ${GITLAB_BUILD_DIR}/config/database.yml.postgresql
+
 RUN cd ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
@@ -239,7 +243,7 @@ RUN cd ${GITLAB_BUILD_DIR} \
     bundle exec rake gettext:compile RAILS_ENV=production; \
     yarn install --production --pure-lockfile ; \
     yarn add ajv@^4.0.0; \
-    bundle exec rake gitlab:assets:compile RAILS_ENV=production NODE_ENV=production NODE_OPTIONS='--max_old_space_size=2048';" \
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production NODE_ENV=production NODE_OPTIONS='--max_old_space_size=4096';" \
     && rm -rf ${GITLAB_BUILD_DIR}/node_modules
 
 ## data copy and clean unnecessary data.
