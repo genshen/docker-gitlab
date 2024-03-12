@@ -14,10 +14,10 @@ LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
 ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.17.2.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v16.16.0/node-v16.16.0-linux-x64.tar.xz"
-ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.40/pcre2-10.40.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.37.0.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.19.8.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v18.16.0/node-v18.16.0-linux-x64.tar.xz"
+ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.39.2.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -128,7 +128,7 @@ FROM gitlab-base-builder AS gitlab-shell-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_SHELL_VERSION_TAG="v13.25.1"
+    GITLAB_SHELL_VERSION_TAG="v14.15.0"
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -155,7 +155,7 @@ FROM gitlab-base-builder AS gitlab-workhorse-builder
 ## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v14.10.5"
+     GITLAB_WORKHORSE_VERSION_TAG="v15.8.5"
 ARG  GITLAB_WORKHORSE_SOURCE_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
 ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_WORKHORSE_SOURCE_DIR}/workhorse"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
@@ -179,7 +179,7 @@ FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v14.10.5"
+     GITLAB_GITALY_VERSION_TAG="v15.8.5"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -212,7 +212,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v14.10.5
+    GITLAB_VERSION=v15.8.5
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
@@ -230,6 +230,10 @@ RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y li
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
+# fix building error: "ERROR: This installation of GitLab uses unsupported database names in 'config/database.yml': geo. The only supported ones are main, ci.ERROR: This installation of GitLab uses unsupported database names in 'config/database.yml': geo. The only supported ones are main, ci."
+# fixme: can be removed if the bug is fixed.
+COPY --chown=git:git config/database.yml ${GITLAB_BUILD_DIR}/config/database.yml.postgresql
+
 RUN cd ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
@@ -239,7 +243,7 @@ RUN cd ${GITLAB_BUILD_DIR} \
     bundle exec rake gettext:compile RAILS_ENV=production; \
     yarn install --production --pure-lockfile ; \
     yarn add ajv@^4.0.0; \
-    bundle exec rake gitlab:assets:compile RAILS_ENV=production NODE_ENV=production NODE_OPTIONS='--max_old_space_size=2048';" \
+    bundle exec rake gitlab:assets:compile RAILS_ENV=production NODE_ENV=production NODE_OPTIONS='--max_old_space_size=4096';" \
     && rm -rf ${GITLAB_BUILD_DIR}/node_modules
 
 ## data copy and clean unnecessary data.

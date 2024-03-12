@@ -77,6 +77,7 @@ ln_file ${GITLAB_LOG_DIR}/gitlab/gitlab-shell.log ${GITLAB_SHELL_DIR}/gitlab-she
 ## init public/upload dir.
 rm -rf ${GITLAB_DIR}/public/uploads
 ln_f ${GITLAB_DATA_DIR}/public/uploads ${GITLAB_DIR}/public/uploads
+chmod 0700 ${GITLAB_DATA_DIR}/public/uploads
 
 # Change the permissions of the directory where CI job traces are stored
 rm -rf ${GITLAB_DIR}/builds/
