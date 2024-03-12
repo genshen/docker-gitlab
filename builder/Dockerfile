@@ -5,11 +5,11 @@ FROM debian:buster-20200908-slim AS gitlab-base-packages-builder
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.19.8.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v18.16.0/node-v18.16.0-linux-x64.tar.xz"
-ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.39.2.tar.gz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.4.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.21.8.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v20.11.1/node-v20.11.1-linux-x64.tar.xz"
+ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.43/pcre2-10.43.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.43.3.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
