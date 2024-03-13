@@ -28,7 +28,7 @@ RUN apt-get clean && apt-get update \
 #    && sed -i 's#http://deb.debian.org#https://mirrors.ustc.edu.cn#g' /etc/apt/sources.list \ # use mirror
     && apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo wget curl build-essential cmake \
-    libexpat1-dev gettext libz-dev \
+    libexpat1-dev gettext libz-dev libkrb5-dev \
     zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
     libncurses5-dev libffi-dev libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
     openssh-server logrotate rsync python-docutils pkg-config
