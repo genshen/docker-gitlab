@@ -293,12 +293,14 @@ COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/git /usr/l
 # libxml2 is needed for db:migrate todo
 # zip unzip is used for artifacts extract.
 # For libmagic-dev, see https://elementaryos.stackexchange.com/q/4436
+# graphicsmagick: for Custom Favicon to work
+# libimage-exiftool-perl: remove EXIF data from uploaded images.
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs gnupg2 yarn ca-certificates wget openssh-server logrotate curl zip unzip \
-    libxml2 libpq5 libicu63 libre2-5 libmagic-dev \
+    libxml2 libpq5 libicu63 libre2-5 libmagic-dev libimage-exiftool-perl graphicsmagick \
     && echo "deb http://apt.postgresql.org/pub/repos/apt ${LSB_RELEASE}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y postgresql-client-12  \
