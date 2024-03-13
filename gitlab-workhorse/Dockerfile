@@ -1,3 +1,7 @@
+## This file is deprecated.
+## It is moved into gitlab/Dockerfile and build with `rake`.
+## This file may still work for building standalone gitlab workhorse.
+
 FROM gitlab-base-builder AS gitlab-workhorse-builder
 ### docker build --rm -t gitlab-workhorse-builder .
 

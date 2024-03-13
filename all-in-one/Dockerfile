@@ -122,6 +122,10 @@ RUN echo "configure git user." \
 ################################
 ## image of gitlab-shell-builder
 ################################
+## This file is deprecated.
+## It is moved into gitlab/Dockerfile and build with `rake`.
+## This file may still work for building standalone gitlab-shell.
+
 FROM gitlab-base-builder AS gitlab-shell-builder
 ### docker build --rm -t gitlab-shell-builder .
 
@@ -147,34 +151,12 @@ RUN mkdir -p ${GITLAB_SHELL_INSTALL_DIR} \
 # remove unused repositories directory created by gitlab-shell install
 
 ################################
-## image of gitlab-workhorse-builder
-################################
-FROM gitlab-base-builder AS gitlab-workhorse-builder
-### docker build --rm -t gitlab-workhorse-builder .
-
-## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
-## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
-ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v15.11.12"
-ARG  GITLAB_WORKHORSE_SOURCE_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
-ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_WORKHORSE_SOURCE_DIR}/workhorse"
-# it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
-ARG  GITLAB_WORKHORSE_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
-
-## node is in /usr/local/node, and go is in /usr/local/go.
-RUN git clone -q -b ${GITLAB_WORKHORSE_VERSION_TAG} --depth 1 ${GITLAB_WORKHORSE_DOWNLOAD_URL} ${GITLAB_WORKHORSE_SOURCE_DIR} \
-    && chown -R ${GITLAB_USER}: ${GITLAB_WORKHORSE_SOURCE_DIR} \
-    && sudo -u ${GITLAB_USER} -H sh -c " \
-    cd ${GITLAB_WORKHORSE_BUILD_DIR}; \
-    export PATH=${GOROOT}/bin:$PATH; \
-    make install PREFIX=${GITLAB_WORKHORSE_INSTALL_DIR} " \
-    && rm -rf ${GITLAB_WORKHORSE_BUILD_DIR}
-
-## the binary is located in ${GITLAB_WORKHORSE_INSTALL_DIR}/bin
-
-################################
 ## image of gitlab-gitaly-builder
 ################################
+## This file is deprecated.
+## It is moved into gitlab/Dockerfile and build with `rake`.
+## This file may still work for building standalone gitaly.
+
 FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
@@ -256,6 +238,30 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
     && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/
     # copy from build dir to install dir (including hiden dirs).
 
+# fetch source and install gitlab-shell
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake gitlab:shell:install[${GITLAB_SHELL_INSTALL_DIR}] RAILS_ENV=production"
+
+# install workhorse
+ENV GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse"
+RUN cd ${GITLAB_BUILD_DIR} \
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+    export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+    bundle exec rake 'gitlab:workhorse:install[${GITLAB_WORKHORSE_INSTALL_DIR}]' RAILS_ENV=production "
+
+# Fetch Gitaly source with Git and compile with Go.
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
+#     GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake 'gitlab:gitaly:install[${GITLAB_GITALY_INSTALL_DIR},${GIT_REPOSITORIES_DIR}]' RAILS_ENV=production "
+
 ################################
 ## image of genshen/gitlab-ce
 ################################
@@ -319,7 +325,7 @@ ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \
 
 # note: replace ${GITLAB_USER} as git.
 COPY --chown=git:git --from=gitlab-shell-builder ${GITLAB_SHELL_DIR} ${GITLAB_SHELL_DIR}/
-COPY --chown=git:git --from=gitlab-workhorse-builder ${GITLAB_WORKHORSE_DIR} ${GITLAB_WORKHORSE_DIR}/
+COPY --chown=git:git --from=gitlab-builder ${GITLAB_WORKHORSE_DIR} ${GITLAB_WORKHORSE_DIR}/
 COPY --chown=git:git --from=gitlab-gitaly-builder ${GITALY_DIR} ${GITALY_DIR}/
 COPY --chown=git:git --from=gitlab-builder ${GITLAB_DIR} ${GITLAB_DIR}/
 

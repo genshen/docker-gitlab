@@ -44,3 +44,27 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
     && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
     && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/
     # copy from build dir to install dir (including hiden dirs).
+
+# fetch source and install gitlab-shell
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake gitlab:shell:install[${GITLAB_SHELL_INSTALL_DIR}] RAILS_ENV=production"
+
+# install workhorse
+ENV GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse"
+RUN cd ${GITLAB_BUILD_DIR} \
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+    export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+    bundle exec rake 'gitlab:workhorse:install[${GITLAB_WORKHORSE_INSTALL_DIR}]' RAILS_ENV=production "
+
+# Fetch Gitaly source with Git and compile with Go.
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
+#     GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake 'gitlab:gitaly:install[${GITLAB_GITALY_INSTALL_DIR},${GIT_REPOSITORIES_DIR}]' RAILS_ENV=production "
