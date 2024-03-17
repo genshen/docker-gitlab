@@ -205,10 +205,16 @@ ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
 RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y libpq-dev \
     && git clone -q -b ${GITLAB_VERSION} --depth 1 ${GITLAB_DOWNLOAD_URL} ${GITLAB_BUILD_DIR} \
     && cd ${GITLAB_BUILD_DIR} \
-    && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} \
+    && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR}
+
+# install gems
+RUN cd ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
      export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
-     bundle install -j $(nproc) --deployment --without development test mysql aws kerberos"
+     bundle config set --local deployment 'true'; \
+     bundle config set --local without 'development test mysql aws kerberos'; \
+     bundle config path ${GITLAB_BUILD_DIR}/vendor/bundle; \
+     bundle install -j $(nproc)"
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
