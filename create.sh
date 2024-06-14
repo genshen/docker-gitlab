@@ -41,7 +41,7 @@ ln_file ()
 
 ## link gitlab-workhorse to /usr/local/bin
 # gitlab-zip-cat is used when using CI/CD to generate  archive.zip file.
-ln -s ${GITLAB_WORKHORSE_DIR}/bin/*  /usr/local/bin/
+ln -s ${GITLAB_WORKHORSE_DIR}/gitlab-*  /usr/local/bin/
 
 ## link ~/.ssh dir
 rm -rf ${GITLAB_HOME}/.ssh
