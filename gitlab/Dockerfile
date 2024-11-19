@@ -1,7 +1,7 @@
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v15.8.5
+    GITLAB_VERSION=v15.11.12
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
@@ -12,10 +12,16 @@ ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
 RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y libpq-dev \
     && git clone -q -b ${GITLAB_VERSION} --depth 1 ${GITLAB_DOWNLOAD_URL} ${GITLAB_BUILD_DIR} \
     && cd ${GITLAB_BUILD_DIR} \
-    && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} \
+    && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR}
+
+# install gems
+RUN cd ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
      export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
-     bundle install -j $(nproc) --deployment --without development test mysql aws kerberos"
+     bundle config set --local deployment 'true'; \
+     bundle config set --local without 'development test mysql aws kerberos'; \
+     bundle config path ${GITLAB_BUILD_DIR}/vendor/bundle; \
+     bundle install -j $(nproc)"
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
@@ -44,3 +50,27 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
     && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
     && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/
     # copy from build dir to install dir (including hiden dirs).
+
+# fetch source and install gitlab-shell
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake gitlab:shell:install[${GITLAB_SHELL_INSTALL_DIR}] RAILS_ENV=production"
+
+# install workhorse
+ENV GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse"
+RUN cd ${GITLAB_BUILD_DIR} \
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+    export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+    bundle exec rake 'gitlab:workhorse:install[${GITLAB_WORKHORSE_INSTALL_DIR}]' RAILS_ENV=production "
+
+# Fetch Gitaly source with Git and compile with Go.
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
+#     GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake 'gitlab:gitaly:install[${GITLAB_GITALY_INSTALL_DIR},${GIT_REPOSITORIES_DIR}]' RAILS_ENV=production "

@@ -13,11 +13,11 @@ FROM debian:buster-20200908-slim AS gitlab-base-packages-builder
 LABEL maintainer="genshenchu@gmail.com" \
       description="base image for build gitlab images."
 
-ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.2.tar.gz"
-ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.19.8.linux-amd64.tar.gz"
-ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v18.16.0/node-v18.16.0-linux-x64.tar.xz"
-ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.42/pcre2-10.42.tar.gz"
-ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.39.2.tar.gz"
+ARG RUBY_DOWNLOAD_RUL="https://cache.ruby-lang.org/pub/ruby/2.7/ruby-2.7.4.tar.gz"
+ARG GOLANG_DOWNLOAD_URL="https://dl.google.com/go/go1.21.8.linux-amd64.tar.gz"
+ARG NODEJS_DOWNLOAD_URL="https://nodejs.org/dist/v20.11.1/node-v20.11.1-linux-x64.tar.xz"
+ARG LIBPCRE_DOWNLOAD_URL="https://github.com/PCRE2Project/pcre2/releases/download/pcre2-10.43/pcre2-10.43.tar.gz"
+ARG GIT_DOWNLOAD_URL="https://mirrors.edge.kernel.org/pub/software/scm/git/git-2.43.3.tar.gz"
 
 # https://docs.gitlab.com/ee/install/installation.html#1-packages-dependencies
 # note: libre2-dev comes from community; openssl is replace by libressl-dev.
@@ -28,7 +28,7 @@ RUN apt-get clean && apt-get update \
 #    && sed -i 's#http://deb.debian.org#https://mirrors.ustc.edu.cn#g' /etc/apt/sources.list \ # use mirror
     && apt-get clean && apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo wget curl build-essential cmake \
-    libexpat1-dev gettext libz-dev \
+    libexpat1-dev gettext libz-dev libkrb5-dev \
     zlib1g-dev libyaml-dev libssl-dev libgdbm-dev libre2-dev libreadline-dev \
     libncurses5-dev libffi-dev libxml2-dev libxslt-dev libcurl4-openssl-dev libicu-dev \
     openssh-server logrotate rsync python-docutils pkg-config
@@ -122,13 +122,17 @@ RUN echo "configure git user." \
 ################################
 ## image of gitlab-shell-builder
 ################################
+## This file is deprecated.
+## It is moved into gitlab/Dockerfile and build with `rake`.
+## This file may still work for building standalone gitlab-shell.
+
 FROM gitlab-base-builder AS gitlab-shell-builder
 ### docker build --rm -t gitlab-shell-builder .
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_SHELL_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell" \
-    GITLAB_SHELL_VERSION_TAG="v14.15.0"
+    GITLAB_SHELL_VERSION_TAG="v14.18.0"
 ARG GITLAB_SHELL_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-shell/-/archive/${GITLAB_SHELL_VERSION_TAG}/gitlab-shell-${GITLAB_SHELL_VERSION_TAG}.tar.gz"
 
 ## compiler from: https://github.com/sameersbn/docker-gitlab/blob/master/assets/build/install.sh
@@ -147,39 +151,17 @@ RUN mkdir -p ${GITLAB_SHELL_INSTALL_DIR} \
 # remove unused repositories directory created by gitlab-shell install
 
 ################################
-## image of gitlab-workhorse-builder
-################################
-FROM gitlab-base-builder AS gitlab-workhorse-builder
-### docker build --rm -t gitlab-workhorse-builder .
-
-## version number should better be the same in /home/git/gitlab/GITLAB_WORKHORSE_VERSION
-## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
-ENV  GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse" \
-     GITLAB_WORKHORSE_VERSION_TAG="v15.8.5"
-ARG  GITLAB_WORKHORSE_SOURCE_DIR="${GITLAB_HOME}/gitlab-workhorse-builder"
-ARG  GITLAB_WORKHORSE_BUILD_DIR="${GITLAB_WORKHORSE_SOURCE_DIR}/workhorse"
-# it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
-ARG  GITLAB_WORKHORSE_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
-
-## node is in /usr/local/node, and go is in /usr/local/go.
-RUN git clone -q -b ${GITLAB_WORKHORSE_VERSION_TAG} --depth 1 ${GITLAB_WORKHORSE_DOWNLOAD_URL} ${GITLAB_WORKHORSE_SOURCE_DIR} \
-    && chown -R ${GITLAB_USER}: ${GITLAB_WORKHORSE_SOURCE_DIR} \
-    && sudo -u ${GITLAB_USER} -H sh -c " \
-    cd ${GITLAB_WORKHORSE_BUILD_DIR}; \
-    export PATH=${GOROOT}/bin:$PATH; \
-    make install PREFIX=${GITLAB_WORKHORSE_INSTALL_DIR} " \
-    && rm -rf ${GITLAB_WORKHORSE_BUILD_DIR}
-
-## the binary is located in ${GITLAB_WORKHORSE_INSTALL_DIR}/bin
-
-################################
 ## image of gitlab-gitaly-builder
 ################################
+## This file is deprecated.
+## It is moved into gitlab/Dockerfile and build with `rake`.
+## This file may still work for building standalone gitaly.
+
 FROM gitlab-base-builder AS gitlab-gitaly-builder
 ### docker build --rm -t gitlab-gitaly-builder .
 
 ENV  GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
-     GITLAB_GITALY_VERSION_TAG="v15.8.5"
+     GITLAB_GITALY_VERSION_TAG="v15.11.12"
 ARG  GITLAB_GITALY_BUILD_DIR="${GITLAB_HOME}/gitlab-gitaly-builder"
 # it must be a git repository, or following error will happen: "fatal: Not a git repository (or any of the parent directories): .git"
 ARG  GITLAB_GITALY_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitaly.git"
@@ -212,7 +194,7 @@ RUN git clone -q -b ${GITLAB_GITALY_VERSION_TAG} --depth 1 ${GITLAB_GITALY_DOWNL
 FROM gitlab-base-builder AS gitlab-builder
 
 ENV GITLAB_INSTALL_DIR="${GITLAB_HOME}/gitlab" \
-    GITLAB_VERSION=v15.8.5
+    GITLAB_VERSION=v15.11.12
 
 ARG GITLAB_BUILD_DIR="${GITLAB_HOME}/gitlab-build"
 ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
@@ -223,10 +205,16 @@ ARG GITLAB_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-foss.git"
 RUN DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y libpq-dev \
     && git clone -q -b ${GITLAB_VERSION} --depth 1 ${GITLAB_DOWNLOAD_URL} ${GITLAB_BUILD_DIR} \
     && cd ${GITLAB_BUILD_DIR} \
-    && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR} \
+    && chown -R ${GITLAB_USER}: ${GITLAB_BUILD_DIR}
+
+# install gems
+RUN cd ${GITLAB_BUILD_DIR} \
     && sudo -u ${GITLAB_USER} -H sh -c " \
      export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
-     bundle install -j $(nproc) --deployment --without development test mysql aws kerberos"
+     bundle config set --local deployment 'true'; \
+     bundle config set --local without 'development test mysql aws kerberos'; \
+     bundle config path ${GITLAB_BUILD_DIR}/vendor/bundle; \
+     bundle install -j $(nproc)"
 
 # mkdir ln -s /lib/libc.musl-x86_64.so.1 /lib/ld-linux-x86-64.so.2 \
 
@@ -255,6 +243,30 @@ RUN rm -rf ${GITLAB_HOME}/.cache \
     && chown -R ${GITLAB_USER}: ${GITLAB_INSTALL_DIR} \
     && cp -a  ${GITLAB_BUILD_DIR}/. ${GITLAB_INSTALL_DIR}/
     # copy from build dir to install dir (including hiden dirs).
+
+# fetch source and install gitlab-shell
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_SHELL_INSTALL_DIR="${GITLAB_HOME}/gitlab-shell"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake gitlab:shell:install[${GITLAB_SHELL_INSTALL_DIR}] RAILS_ENV=production"
+
+# install workhorse
+ENV GITLAB_WORKHORSE_INSTALL_DIR="${GITLAB_HOME}/gitlab-workhorse"
+RUN cd ${GITLAB_BUILD_DIR} \
+    && sudo -u ${GITLAB_USER} -H sh -c " \
+    export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+    bundle exec rake 'gitlab:workhorse:install[${GITLAB_WORKHORSE_INSTALL_DIR}]' RAILS_ENV=production "
+
+# Fetch Gitaly source with Git and compile with Go.
+# disabled due to inplace building takes too many disk space
+# ENV GITLAB_GITALY_INSTALL_DIR="${GITLAB_HOME}/gitaly" \
+#     GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories"
+# RUN cd ${GITLAB_BUILD_DIR} \
+#     && sudo -u ${GITLAB_USER} -H sh -c " \
+#     export PATH=${GOROOT}/bin:${NODE_HOME}/bin:${YARN_BIN_GITLAB_USER}:$PATH; \
+#     bundle exec rake 'gitlab:gitaly:install[${GITLAB_GITALY_INSTALL_DIR},${GIT_REPOSITORIES_DIR}]' RAILS_ENV=production "
 
 ################################
 ## image of genshen/gitlab-ce
@@ -287,12 +299,14 @@ COPY --chown=root:root --from=gitlab-base-packages-builder /usr/local/git /usr/l
 # libxml2 is needed for db:migrate todo
 # zip unzip is used for artifacts extract.
 # For libmagic-dev, see https://elementaryos.stackexchange.com/q/4436
+# graphicsmagick: for Custom Favicon to work
+# libimage-exiftool-perl: remove EXIF data from uploaded images.
 RUN adduser --disabled-login --gecos 'GitLab' ${GITLAB_USER} \
     && passwd -d ${GITLAB_USER} \
     && apt-get clean \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y \
     sudo nodejs gnupg2 yarn ca-certificates wget openssh-server logrotate curl zip unzip \
-    libxml2 libpq5 libicu63 libre2-5 libmagic-dev \
+    libxml2 libpq5 libicu63 libre2-5 libmagic-dev libimage-exiftool-perl graphicsmagick \
     && echo "deb http://apt.postgresql.org/pub/repos/apt ${LSB_RELEASE}-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
     && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
     && apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install --no-install-recommends -y postgresql-client-12  \
@@ -319,7 +333,7 @@ ENV GIT_REPOSITORIES_DIR="${GITLAB_HOME}/repositories" \
 
 # note: replace ${GITLAB_USER} as git.
 COPY --chown=git:git --from=gitlab-shell-builder ${GITLAB_SHELL_DIR} ${GITLAB_SHELL_DIR}/
-COPY --chown=git:git --from=gitlab-workhorse-builder ${GITLAB_WORKHORSE_DIR} ${GITLAB_WORKHORSE_DIR}/
+COPY --chown=git:git --from=gitlab-builder ${GITLAB_WORKHORSE_DIR} ${GITLAB_WORKHORSE_DIR}/
 COPY --chown=git:git --from=gitlab-gitaly-builder ${GITALY_DIR} ${GITALY_DIR}/
 COPY --chown=git:git --from=gitlab-builder ${GITLAB_DIR} ${GITLAB_DIR}/
 

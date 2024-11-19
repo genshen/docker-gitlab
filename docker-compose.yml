@@ -2,7 +2,7 @@ version: "3"
 services:
   gitlab:
     restart: always
-    image: genshen/gitlab-ce:15.8.5
+    image: ghcr.io/genshen/docker-gitlab/gitlab-ce:15.11.12
     container_name: gitlab_ce
     depends_on:
     - redis
@@ -21,7 +21,7 @@ services:
 
   gitlab-pages:
     restart: always
-    image: genshen/gitlab-pages:15.8.5
+    image: ghcr.io/genshen/docker-gitlab/gitlab-ce:15.11.12
     container_name: gitlab-pages
     command: ./bin/gitlab-pages -config /etc/gitlab/pages.conf  # config file template is at config/page.conf.
     # command: ./bin/gitlab-pages -listen-http ":8080" -pages-root  /home/git/gitlab-pages/pages -pages-domain  example.io
@@ -34,7 +34,7 @@ services:
 
   redis:
     restart: always
-    image: redis:6.0.5
+    image: redis:6.2.14
     container_name: redis
     command:
     - --loglevel warning

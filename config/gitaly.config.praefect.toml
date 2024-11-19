@@ -66,3 +66,11 @@ name = 'praefect'
   storage = "praefect-git-2"
   address = "tcp://praefect-git-2.internal"
   token = 'token3'
+
+[yamux]
+# MaximumStreamWindowSizeBytes sets the maximum window size in bytes used for yamux streams.
+# Higher value can increase throughput at the cost of more memory usage.
+maximum_stream_window_size_bytes = 262144
+# AcceptBacklog sets the maximum number of stream openings in-flight
+# before further openings block.
+accept_backlog = 256

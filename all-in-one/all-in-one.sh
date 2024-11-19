@@ -31,15 +31,6 @@ cat gitlab-shell/Dockerfile >> ${DockerFile}
 cat >> ${DockerFile}  <<EOF
 
 ################################
-## image of gitlab-workhorse-builder
-################################
-EOF
-cat gitlab-workhorse/Dockerfile >> ${DockerFile}
-
-
-cat >> ${DockerFile}  <<EOF
-
-################################
 ## image of gitlab-gitaly-builder
 ################################
 EOF

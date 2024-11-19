@@ -1,9 +1,9 @@
-FROM golang:1.17.2-buster AS gitlab-pages-builder
+FROM golang:1.21.8-bookworm AS gitlab-pages-builder
 
 ## version number should better be the same in /home/git/gitlab/GITLAB_PAGES_VERSION
 ## see files in https://gitlab.com/gitlab-org/gitlab-foss for corresponding gitlab version.
 ENV  GITLAB_PAGES_INSTALL_DIR="/usr/local/gitlab-pages" \
-     GITLAB_PAGES_VERSION_TAG="v15.8.5"
+     GITLAB_PAGES_VERSION_TAG="v15.11.12"
 ARG  GITLAB_PAGES_BUILD_DIR="/tmp/gitlab-pages-builder"
 ARG  GITLAB_PAGES_DOWNLOAD_URL="https://gitlab.com/gitlab-org/gitlab-pages.git"
 
@@ -24,7 +24,7 @@ RUN git clone -q -b ${GITLAB_PAGES_VERSION_TAG} --depth 1 ${GITLAB_PAGES_DOWNLOA
 
 
 ### docker build --rm -t genshen/gitlab-pages .
-FROM debian:buster-20200908-slim AS gitlab-pages
+FROM debian:bookworm-20240311-slim AS gitlab-pages
 
 LABEL maintainer="genshenchu@gmail.com" \
       description="gitlab-pages images."
